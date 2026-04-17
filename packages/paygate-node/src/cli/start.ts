@@ -61,12 +61,18 @@ export async function startServer(opts: StartOptions): Promise<void> {
       : undefined;
 
   const devMode = opts.dev === true;
+  // defaults.confirmations is `number | 'confirmed' | 'finalized'`; for EVM
+  // chains only the numeric form applies.  Solana ignores this value.
+  const confirmationsValue = cfg.defaults.confirmations;
+  const evmConfirmations = typeof confirmationsValue === 'number' ? confirmationsValue : 2;
+
   const adapters: Record<string, ChainAdapter> = {};
   if (cfg.wallets.base) {
     adapters['base'] = new BaseAdapter({
       chainId: 'base',
       rpcUrl: process.env['PAYGATE_BASE_RPC_URL'] ?? 'https://mainnet.base.org',
       receivingWallet: cfg.wallets.base,
+      confirmations: evmConfirmations,
       devMode,
       ...(cfg.advanced.facilitator_url
         ? { facilitatorUrl: cfg.advanced.facilitator_url }
@@ -78,6 +84,7 @@ export async function startServer(opts: StartOptions): Promise<void> {
       chainId: 'base-sepolia',
       rpcUrl: process.env['PAYGATE_BASE_SEPOLIA_RPC_URL'] ?? 'https://sepolia.base.org',
       receivingWallet: cfg.wallets['base-sepolia'],
+      confirmations: evmConfirmations,
       devMode,
     });
   }

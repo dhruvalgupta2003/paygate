@@ -352,7 +352,10 @@ export class BaseAdapter implements ChainAdapter {
       };
     }
 
-    // Confirmation depth.
+    // Confirmation depth.  A receipt that we just got obviously includes the
+    // tx's own block, so 0 confirmations = "visible in the canonical chain".
+    // A tx block number later than `latest` (can happen on load-balanced
+    // public RPCs when different nodes are a block apart) clamps to 0.
     let latest: bigint;
     try {
       latest = await this.client.getBlockNumber();
@@ -364,7 +367,7 @@ export class BaseAdapter implements ChainAdapter {
         retryable: true,
       };
     }
-    const confirmations = Number(latest - receipt.blockNumber);
+    const confirmations = Math.max(0, Number(latest - receipt.blockNumber));
     if (confirmations < this.confirmations) {
       return {
         ok: false,
