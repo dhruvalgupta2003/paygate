@@ -82,6 +82,9 @@ program
   .option('--endpoint <path>', 'endpoint to hit', '/api/v1/weather/sf')
   .option('--chain <chain>', 'base | base-sepolia', 'base-sepolia')
   .option('--private-key <hex>', '0x... private key (throwaway ok; generated if omitted)')
+  .option('--submit', 'submit transferWithAuthorization on-chain (Base Sepolia only)')
+  .option('--rpc-url <url>', 'RPC URL for --submit (default: $PAYGATE_BASE_SEPOLIA_RPC_URL or sepolia.base.org)')
+  .option('--confirmations <n>', 'confirmations to wait for after --submit', '1')
   .option('-v, --verbose', 'verbose output')
   .action(async (opts) => {
     await runDemo({
@@ -89,6 +92,9 @@ program
       endpoint: opts.endpoint,
       chain: opts.chain,
       ...(opts.privateKey ? { privateKey: opts.privateKey } : {}),
+      submit: opts.submit === true,
+      ...(opts.rpcUrl ? { rpcUrl: opts.rpcUrl } : {}),
+      confirmations: Number(opts.confirmations),
       verbose: opts.verbose === true,
     });
   });

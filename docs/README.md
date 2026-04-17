@@ -3,6 +3,7 @@
 Start here:
 
 - **[Getting started](./getting-started.md)** — 5-minute setup.
+- **[Testnet demo](./testnet-demo.md)** — real USDC on Base Sepolia, end-to-end.
 - **[Architecture](./architecture.md)** — components, data flow, topologies.
 - **[Payment flow](./payment-flow.md)** — x402 handshake end-to-end.
 - **[API reference](./api-reference.md)** — REST + CLI.

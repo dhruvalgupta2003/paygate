@@ -22,8 +22,19 @@ interface MinimalRpcClient {
     status: 'success' | 'reverted';
     blockNumber: bigint;
     to: Address | null;
+    logs: ReadonlyArray<{ address: Address; topics: readonly Hex[]; data: Hex }>;
   }>;
   getBlockNumber: () => Promise<bigint>;
+}
+
+// USDC's ERC-20 Transfer event signature topic.
+// keccak256("Transfer(address,address,uint256)")
+const TRANSFER_TOPIC: Hex =
+  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+function topicToAddress(topic: Hex): Address {
+  // topics are left-padded 32-byte values; address is the last 20 bytes
+  return getAddress(`0x${topic.slice(26)}`);
 }
 import {
   EIP712_DOMAIN,
@@ -211,12 +222,37 @@ export class BaseAdapter implements ChainAdapter {
       return { ok: false, code: 'INVALID_SIGNATURE', detail: 'signature does not recover to from', retryable: false };
     }
 
-    // Nonce state check (prevents double-submission of the on-chain auth).
+    // Authorization-nonce sanity.
     const nonceBytes = hexToBytes(auth.authorization.nonce);
     if (nonceBytes.length !== 32) {
-      return { ok: false, code: 'INVALID_SIGNATURE', detail: 'authorization nonce must be bytes32', retryable: false };
+      return {
+        ok: false,
+        code: 'INVALID_SIGNATURE',
+        detail: 'authorization nonce must be bytes32',
+        retryable: false,
+      };
     }
-    if (!this.devMode) {
+
+    // Dev mode short-circuits.  Signature verification still ran above.
+    if (this.devMode) {
+      return {
+        ok: true,
+        settledAmount: String(providedValue),
+        payer: getAddress(auth.authorization.from),
+        recipient: this.receiver,
+        chain: this.id,
+        asset: this.usdc,
+        observedAt: nowSec,
+      };
+    }
+
+    // Production path: the agent must have already submitted the transfer
+    // and given us the tx hash.  We confirm the transfer happened on-chain
+    // with the right (from, to, value).  PayGate doesn't submit txs in
+    // v0.x — that responsibility is on the agent or the facilitator.
+    if (!auth.settlementTxHash) {
+      // Check whether the auth was already used (possibly by a different
+      // submitter) and provide a useful error either way.
       try {
         const used = await this.client.readContract({
           address: this.usdc,
@@ -228,10 +264,18 @@ export class BaseAdapter implements ChainAdapter {
           return {
             ok: false,
             code: 'NONCE_REUSED',
-            detail: 'authorization nonce already consumed on-chain',
+            detail:
+              'authorization nonce already consumed on-chain; include the settlement tx hash in X-PAYMENT.settlementTxHash so PayGate can verify it',
             retryable: false,
           };
         }
+        return {
+          ok: false,
+          code: 'SETTLEMENT_PENDING',
+          detail:
+            'authorization signed but not yet submitted on-chain; submit transferWithAuthorization and retry with X-PAYMENT.settlementTxHash',
+          retryable: true,
+        };
       } catch (err) {
         return {
           ok: false,
@@ -242,14 +286,102 @@ export class BaseAdapter implements ChainAdapter {
       }
     }
 
+    return this.confirmEvmSettlement(
+      auth.settlementTxHash as Hex,
+      getAddress(auth.authorization.from),
+      providedValue,
+      nowSec,
+    );
+  }
+
+  /** Verify an already-submitted Transfer event matches the signed auth. */
+  private async confirmEvmSettlement(
+    txHash: Hex,
+    expectedFrom: Address,
+    expectedValue: bigint,
+    observedAt: number,
+  ): Promise<VerifyResult> {
+    let receipt: Awaited<ReturnType<MinimalRpcClient['getTransactionReceipt']>>;
+    try {
+      receipt = await this.client.getTransactionReceipt({ hash: txHash });
+    } catch (err) {
+      return {
+        ok: false,
+        code: 'SETTLEMENT_PENDING',
+        detail: `tx ${txHash} not yet visible: ${(err as Error).message}`,
+        retryable: true,
+      };
+    }
+
+    if (receipt.status !== 'success') {
+      return { ok: false, code: 'SETTLEMENT_FAILED', detail: 'tx reverted', retryable: false };
+    }
+
+    const txTo = receipt.to === null ? null : getAddress(receipt.to);
+    if (txTo !== this.usdc) {
+      return {
+        ok: false,
+        code: 'ASSET_MISMATCH',
+        detail: `tx.to=${txTo ?? 'null'} is not the USDC contract ${this.usdc}`,
+        retryable: false,
+      };
+    }
+
+    // Find a matching ERC-20 Transfer log.
+    const match = receipt.logs.find((log) => {
+      if (getAddress(log.address) !== this.usdc) return false;
+      if (log.topics[0] !== TRANSFER_TOPIC) return false;
+      if (log.topics.length < 3) return false;
+      const fromTopic = log.topics[1];
+      const toTopic = log.topics[2];
+      if (!fromTopic || !toTopic) return false;
+      const from = topicToAddress(fromTopic);
+      const to = topicToAddress(toTopic);
+      if (from !== expectedFrom) return false;
+      if (to !== this.receiver) return false;
+      const value = BigInt(log.data || '0x0');
+      return value >= expectedValue;
+    });
+
+    if (!match) {
+      return {
+        ok: false,
+        code: 'AMOUNT_INSUFFICIENT',
+        detail: `no matching USDC Transfer (from=${expectedFrom}, to=${this.receiver}, value≥${expectedValue}) in tx ${txHash}`,
+        retryable: false,
+      };
+    }
+
+    // Confirmation depth.
+    let latest: bigint;
+    try {
+      latest = await this.client.getBlockNumber();
+    } catch (err) {
+      return {
+        ok: false,
+        code: 'RPC_UNAVAILABLE',
+        detail: `getBlockNumber failed: ${(err as Error).message}`,
+        retryable: true,
+      };
+    }
+    const confirmations = Number(latest - receipt.blockNumber);
+    if (confirmations < this.confirmations) {
+      return {
+        ok: false,
+        code: 'SETTLEMENT_PENDING',
+        detail: `need ${this.confirmations} confirmations, have ${confirmations}`,
+        retryable: true,
+      };
+    }
+
     return {
       ok: true,
-      settledAmount: String(providedValue),
-      payer: getAddress(auth.authorization.from),
+      settledAmount: String(expectedValue),
+      payer: expectedFrom,
       recipient: this.receiver,
       chain: this.id,
       asset: this.usdc,
-      observedAt: nowSec,
+      observedAt,
     };
   }
 

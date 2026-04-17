@@ -14,7 +14,9 @@
 import { randomBytes } from 'node:crypto';
 import { request as httpRequest, type IncomingHttpHeaders } from 'node:http';
 import {
+  createPublicClient,
   createWalletClient,
+  encodeFunctionData,
   http,
   parseSignature,
   type Hex,
@@ -71,8 +73,31 @@ export interface DemoOptions {
   readonly endpoint: string;
   readonly chain: 'base' | 'base-sepolia';
   readonly privateKey?: string;
+  readonly submit?: boolean;
+  readonly rpcUrl?: string;
+  readonly confirmations?: number;
   readonly verbose?: boolean;
 }
+
+const TRANSFER_WITH_AUTHORIZATION_ABI = [
+  {
+    name: 'transferWithAuthorization',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'from', type: 'address' },
+      { name: 'to', type: 'address' },
+      { name: 'value', type: 'uint256' },
+      { name: 'validAfter', type: 'uint256' },
+      { name: 'validBefore', type: 'uint256' },
+      { name: 'nonce', type: 'bytes32' },
+      { name: 'v', type: 'uint8' },
+      { name: 'r', type: 'bytes32' },
+      { name: 's', type: 'bytes32' },
+    ],
+    outputs: [],
+  },
+] as const;
 
 const EIP712_TYPES = {
   TransferWithAuthorization: [
@@ -177,6 +202,71 @@ export async function runDemo(opts: DemoOptions): Promise<void> {
   line('auth.nonce', authNonce.slice(0, 18) + '…');
   line('sig.v', String(v ?? 27));
 
+  // -- Step 2.5 (optional): submit transferWithAuthorization on-chain ----
+  let settlementTxHash: Hex | undefined;
+  if (opts.submit) {
+    heading('Step 2.5 — submit transferWithAuthorization on-chain');
+    if (opts.chain === 'base') {
+      console.error(
+        '\nrefusing to submit on Base mainnet from the demo CLI; use --chain base-sepolia',
+      );
+      process.exitCode = 1;
+      return;
+    }
+    const chainObj = baseSepolia;
+    const rpc = opts.rpcUrl ?? process.env['PAYGATE_BASE_SEPOLIA_RPC_URL'] ?? 'https://sepolia.base.org';
+    const submitClient = createWalletClient({
+      account,
+      chain: chainObj,
+      transport: http(rpc),
+    });
+    const publicClient = createPublicClient({ chain: chainObj, transport: http(rpc) });
+    const data = encodeFunctionData({
+      abi: TRANSFER_WITH_AUTHORIZATION_ABI,
+      functionName: 'transferWithAuthorization',
+      args: [
+        account.address,
+        req.payTo as Hex,
+        value,
+        validAfter,
+        validBefore,
+        authNonce,
+        Number(v ?? 27),
+        r,
+        s,
+      ],
+    });
+
+    line('rpc', rpc);
+    line('usdc', usdc);
+    try {
+      const txHash = await submitClient.sendTransaction({
+        to: usdc,
+        data,
+      });
+      line('submitted', txHash);
+      settlementTxHash = txHash;
+      const wait = opts.confirmations ?? 1;
+      line('waiting', `${wait} confirmation${wait === 1 ? '' : 's'}…`);
+      const rcpt = await publicClient.waitForTransactionReceipt({
+        hash: txHash,
+        confirmations: wait,
+      });
+      line('status', rcpt.status);
+      line('block', String(rcpt.blockNumber));
+      if (rcpt.status !== 'success') {
+        console.error('\non-chain submission reverted; aborting');
+        process.exitCode = 1;
+        return;
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`\non-chain submission failed: ${msg}`);
+      process.exitCode = 1;
+      return;
+    }
+  }
+
   // -- Step 3: build + send X-PAYMENT -------------------------------------
   heading('Step 3 — retry with X-PAYMENT');
   const xPayment = Buffer.from(
@@ -200,6 +290,7 @@ export async function runDemo(opts: DemoOptions): Promise<void> {
         r,
         s,
       },
+      ...(settlementTxHash ? { settlementTxHash } : {}),
     }),
   ).toString('base64');
 
