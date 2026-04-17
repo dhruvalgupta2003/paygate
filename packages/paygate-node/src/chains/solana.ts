@@ -5,7 +5,6 @@ import {
   type Commitment,
 } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
-import bs58 from 'bs58';
 import nacl from 'tweetnacl';
 import { SOLANA_PROGRAMS, USDC_ADDRESSES, type ChainId } from '../constants.js';
 import {
@@ -138,8 +137,12 @@ export class SolanaAdapter implements ChainAdapter {
 
   async confirmPayment(proof: SettlementProof): Promise<VerifyResult> {
     try {
+      // getTransaction accepts Finality ('confirmed' | 'finalized') only,
+      // never 'processed' — downgrade if the adapter was configured with it.
+      const finality: 'confirmed' | 'finalized' =
+        this.commitment === 'finalized' ? 'finalized' : 'confirmed';
       const res = await this.conn.getTransaction(proof.txHash, {
-        commitment: this.commitment,
+        commitment: finality,
         maxSupportedTransactionVersion: 0,
       });
       if (!res) {
@@ -292,5 +295,3 @@ function bufToLeU64(buf: Uint8Array, off: number): bigint {
   }
   return v;
 }
-
-export const SOLANA_BS58 = bs58;

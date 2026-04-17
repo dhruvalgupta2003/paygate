@@ -6,15 +6,30 @@ import {
   recoverTypedDataAddress,
   type Address,
   type Hex,
-  type PublicClient,
 } from 'viem';
 import { base, baseSepolia } from 'viem/chains';
+
+// Minimal interface we actually use.  Avoids leaking viem's deeply-generic
+// PublicClient type through our .d.ts — tsup's DTS rollup chokes on it.
+interface MinimalRpcClient {
+  readContract: (args: {
+    address: Address;
+    abi: readonly unknown[];
+    functionName: string;
+    args?: readonly unknown[];
+  }) => Promise<unknown>;
+  getTransactionReceipt: (args: { hash: Hex }) => Promise<{
+    status: 'success' | 'reverted';
+    blockNumber: bigint;
+    to: Address | null;
+  }>;
+  getBlockNumber: () => Promise<bigint>;
+}
 import {
   EIP712_DOMAIN,
   EvmChainId,
   USDC_ADDRESSES,
   X402_VERSION,
-  type ChainId,
 } from '../constants.js';
 import { PayGateError } from '../errors.js';
 import {
@@ -80,13 +95,14 @@ export interface BaseAdapterOptions {
 }
 
 export class BaseAdapter implements ChainAdapter {
-  readonly id: ChainId;
-  private readonly client: PublicClient;
+  // Narrowed to EVM chains — EIP712_DOMAIN only has entries for base/base-sepolia.
+  readonly id: 'base' | 'base-sepolia';
+  private readonly client: MinimalRpcClient;
   private readonly usdc: Address;
   private readonly receiver: Address;
   private readonly confirmations: number;
   private readonly facilitatorUrl: string | undefined;
-  private readonly chainMeta;
+  private readonly chainMeta: typeof base | typeof baseSepolia;
 
   constructor(opts: BaseAdapterOptions) {
     this.id = opts.chainId;
@@ -94,7 +110,7 @@ export class BaseAdapter implements ChainAdapter {
     this.client = createPublicClient({
       chain: this.chainMeta,
       transport: http(opts.rpcUrl, { batch: true, retryCount: 2, retryDelay: 200 }),
-    });
+    }) as unknown as MinimalRpcClient;
     this.usdc = getAddress(USDC_ADDRESSES[opts.chainId]);
     this.receiver = getAddress(opts.receivingWallet);
     this.confirmations = opts.confirmations ?? 2;

@@ -1,5 +1,5 @@
 import { fetch } from 'undici';
-import { context, trace, SpanStatusCode, type Span } from '@opentelemetry/api';
+import { trace, SpanStatusCode, type Span } from '@opentelemetry/api';
 import type { PayGateConfig } from '../config.js';
 import { PayGateError } from '../errors.js';
 import type {
@@ -15,9 +15,10 @@ import type {
 } from '../types.js';
 import { encodeRequirements, decodePaymentHeader } from './handshake.js';
 import { compileMatcher, type CompiledMatcher } from './matcher.js';
-import { usdcToMicros, microsToUsdc } from '../utils/amount.js';
+import { usdcToMicros } from '../utils/amount.js';
 import { epochSeconds, shortToken } from '../utils/nonce.js';
-import { walletMask, nonceMask } from '../utils/logger.js';
+import { nonceMask } from '../utils/logger.js';
+import type { ChainId } from '../constants.js';
 import { FacilitatorClient } from '../facilitator/client.js';
 import { metrics } from '../analytics/metrics.js';
 import type { RedisRateLimiter, InMemoryRateLimiter, RateLimitSpec } from '../utils/rate-limiter.js';
@@ -53,7 +54,6 @@ export class CoreProxy {
   private readonly logger: Logger;
   private readonly upstream: string;
   private readonly facilitator: FacilitatorClient | undefined;
-  private readonly now: () => number;
 
   constructor(deps: CoreProxyDeps) {
     this.cfg = deps.config;
@@ -64,7 +64,7 @@ export class CoreProxy {
     this.logger = deps.logger;
     this.upstream = deps.upstream;
     this.facilitator = deps.facilitator;
-    this.now = deps.now ?? epochSeconds;
+    void (deps.now ?? epochSeconds); // reserved for future injection
     this.matcher = compileMatcher(this.cfg.endpoints, (s) => usdcToMicros(s));
   }
 
@@ -84,7 +84,7 @@ export class CoreProxy {
             return { response: await this.forward(request) };
           }
 
-          const chain = matched.endpoint.chain ?? this.cfg.defaults.chain;
+          const chain: ChainId = (matched.endpoint.chain ?? this.cfg.defaults.chain) as ChainId;
           const adapter = this.adapters[chain];
           if (!adapter) {
             throw new PayGateError({
@@ -104,7 +104,7 @@ export class CoreProxy {
             const req = adapter.buildPaymentRequirements(
               { chain, asset: '', amount: matched.priceMicros.toString() },
               {
-                payTo: this.cfg.wallets[chain] ?? '',
+                payTo: (this.cfg.wallets as Record<string, string | undefined>)[chain] ?? '',
                 validUntilSeconds: this.cfg.defaults.payment_ttl_seconds,
                 ...(matched.endpoint.description !== undefined
                   ? { description: matched.endpoint.description }
@@ -217,13 +217,13 @@ export class CoreProxy {
           const verifyStart = performance.now();
           let verify: VerifyResult;
           if (this.facilitator && this.cfg.defaults.facilitator === 'coinbase') {
-            const requirements = await this.rebuildRequirements(adapter, matched.priceMicros, auth, chain);
+            const requirements = await this.rebuildRequirements(adapter, matched.priceMicros, chain);
             verify = await this.facilitator.verify(requirements, xPayment);
             if (verify.ok) {
               verify = await this.facilitator.settle(requirements, xPayment);
             }
           } else {
-            const requirements = await this.rebuildRequirements(adapter, matched.priceMicros, auth, chain);
+            const requirements = await this.rebuildRequirements(adapter, matched.priceMicros, chain);
             verify = await adapter.verifyPayment(requirements, xPayment);
           }
           metrics.verifyDurationSeconds.observe({ chain, mode: this.cfg.defaults.facilitator }, (performance.now() - verifyStart) / 1000);
@@ -277,15 +277,14 @@ export class CoreProxy {
   private async rebuildRequirements(
     adapter: ChainAdapter,
     amountMicros: bigint,
-    auth: PaymentAuth,
     chain: string,
   ): Promise<PaymentRequirements> {
     // We rebuild requirements from the *stored* digest fields, not from
     // client input, so a malicious agent cannot swap chain/amount.
     return adapter.buildPaymentRequirements(
-      { chain: chain as never, asset: '', amount: amountMicros.toString() },
+      { chain: chain as ChainId, asset: '', amount: amountMicros.toString() },
       {
-        payTo: this.cfg.wallets[chain as never] ?? '',
+        payTo: (this.cfg.wallets as Record<string, string | undefined>)[chain] ?? '',
         validUntilSeconds: this.cfg.defaults.payment_ttl_seconds,
       },
     );
@@ -343,7 +342,9 @@ function getHeaderSingle(
 ): string | undefined {
   const v = headers[name] ?? headers[name.toLowerCase()];
   if (v === undefined) return undefined;
-  return Array.isArray(v) ? v[0] : v;
+  if (typeof v === 'string') return v;
+  // readonly string[] — Array.isArray's built-in predicate won't narrow it.
+  return v.length > 0 ? v[0] : undefined;
 }
 
 function headersToObject(h: PayGateRequest['headers']): Record<string, string> {
@@ -359,6 +360,3 @@ function buildReceipt(info: { chain: string; txHash: string; settled: string }):
   return `t=${Math.floor(Date.now() / 1000)},chain=${info.chain},tx=${info.txHash},settled=${info.settled}`;
 }
 
-// avoid "unused" lint on mask helpers (they're used elsewhere in the repo)
-void walletMask;
-void microsToUsdc;

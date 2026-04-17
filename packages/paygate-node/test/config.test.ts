@@ -11,7 +11,8 @@ endpoints:
   - path: /api/v1/*
     price_usdc: 0.001
 `);
-    expect(cfg.endpoints[0]?.price_usdc).toBe('0.001');
+    // Numeric YAML values are normalised to USDC's 6-decimal precision.
+    expect(cfg.endpoints[0]?.price_usdc).toBe('0.001000');
     expect(cfg.defaults.chain).toBe('base');
   });
 

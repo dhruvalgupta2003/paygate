@@ -1,11 +1,9 @@
-import { serve } from '@hono/node-server' // dynamic: loaded only when installed
-  .catch(() => null as unknown as { serve: (...args: unknown[]) => unknown });
 import { createServer } from 'node:http';
 import Redis from 'ioredis';
 import { Hono } from 'hono';
 import { loadConfigFromFile } from '../config.js';
 import { createLogger } from '../utils/logger.js';
-import { DEFAULT_FACILITATOR_URL, USDC_ADDRESSES } from '../constants.js';
+import { DEFAULT_FACILITATOR_URL } from '../constants.js';
 import { BaseAdapter } from '../chains/base.js';
 import { SolanaAdapter } from '../chains/solana.js';
 import { RedisNonceStore, InMemoryNonceStore } from '../utils/nonce-store.js';
@@ -32,11 +30,16 @@ export async function startServer(opts: StartOptions): Promise<void> {
     logger.info({ config: opts.config }, 'config OK');
     return;
   }
+
   const upstream = opts.upstream ?? process.env['PAYGATE_UPSTREAM_URL'];
-  if (!upstream) throw new Error('upstream URL is required (--upstream or PAYGATE_UPSTREAM_URL)');
+  if (!upstream) {
+    throw new Error('upstream URL is required (--upstream or PAYGATE_UPSTREAM_URL)');
+  }
 
   const redisUrl = process.env['PAYGATE_REDIS_URL'];
-  const redis = redisUrl ? new Redis(redisUrl, { maxRetriesPerRequest: 2, enableReadyCheck: true }) : undefined;
+  const redis = redisUrl
+    ? new Redis(redisUrl, { maxRetriesPerRequest: 2, enableReadyCheck: true })
+    : undefined;
   const nonceStore = redis ? new RedisNonceStore(redis) : new InMemoryNonceStore();
   const rateLimiter = redis ? new RedisRateLimiter(redis) : new InMemoryRateLimiter();
 
@@ -63,7 +66,9 @@ export async function startServer(opts: StartOptions): Promise<void> {
       chainId: 'base',
       rpcUrl: process.env['PAYGATE_BASE_RPC_URL'] ?? 'https://mainnet.base.org',
       receivingWallet: cfg.wallets.base,
-      ...(cfg.advanced.facilitator_url ? { facilitatorUrl: cfg.advanced.facilitator_url } : {}),
+      ...(cfg.advanced.facilitator_url
+        ? { facilitatorUrl: cfg.advanced.facilitator_url }
+        : {}),
     });
   }
   if (cfg.wallets['base-sepolia']) {
@@ -83,7 +88,8 @@ export async function startServer(opts: StartOptions): Promise<void> {
   if (cfg.wallets['solana-devnet']) {
     adapters['solana-devnet'] = new SolanaAdapter({
       chainId: 'solana-devnet',
-      rpcUrl: process.env['PAYGATE_SOLANA_DEVNET_RPC_URL'] ?? 'https://api.devnet.solana.com',
+      rpcUrl:
+        process.env['PAYGATE_SOLANA_DEVNET_RPC_URL'] ?? 'https://api.devnet.solana.com',
       receivingWallet: cfg.wallets['solana-devnet'],
     });
   }
@@ -116,55 +122,61 @@ export async function startServer(opts: StartOptions): Promise<void> {
   });
 
   app.all('*', async (c) => {
-    const request = c.req;
-    const url = new URL(request.url);
+    const req = c.req;
+    const url = new URL(req.url);
     const buf =
-      request.method === 'GET' || request.method === 'HEAD'
+      req.method === 'GET' || req.method === 'HEAD'
         ? undefined
-        : new Uint8Array(await request.raw.arrayBuffer());
+        : new Uint8Array(await req.raw.arrayBuffer());
     const result = await proxy.handle({
-      method: request.method,
-      url: request.url,
+      method: req.method,
+      url: req.url,
       path: url.pathname,
       query: Object.fromEntries(url.searchParams),
-      headers: Object.fromEntries(request.raw.headers) as never,
-      ip: request.header('x-forwarded-for')?.split(',')[0]?.trim() ?? undefined,
+      headers: Object.fromEntries(req.raw.headers) as never,
+      ip: req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? undefined,
       body: buf,
     });
-    return c.body(result.response.body ?? null, result.response.status as never, result.response.headers);
+    return c.body(
+      result.response.body ?? null,
+      result.response.status as never,
+      result.response.headers,
+    );
   });
 
   const port = Number(opts.port);
-  const { Hono: _H } = { Hono };
-  void _H;
+  const server = createServer(async (req, res) => {
+    try {
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) chunks.push(chunk as Buffer);
+      const body = Buffer.concat(chunks);
+      const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
+      const webReq = new Request(url, {
+        method: req.method,
+        headers: req.headers as never,
+        body: body.length > 0 ? body : undefined,
+      });
+      const webRes = await app.fetch(webReq);
+      res.statusCode = webRes.status;
+      webRes.headers.forEach((v, k) => res.setHeader(k, v));
+      const payload = await webRes.arrayBuffer();
+      res.end(Buffer.from(payload));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'internal error';
+      res.statusCode = 500;
+      res.end(message);
+    }
+  });
 
-  // We prefer @hono/node-server when available; fall back to bare http.
-  if (typeof (serve as unknown) === 'function') {
-    (serve as (arg: unknown) => unknown)({ fetch: app.fetch, hostname: opts.host, port });
+  server.listen(port, opts.host, () => {
     logger.info({ host: opts.host, port, upstream }, 'paygate listening');
-  } else {
-    const server = createServer(async (req, res) => {
-      try {
-        const chunks: Buffer[] = [];
-        for await (const chunk of req) chunks.push(chunk as Buffer);
-        const body = Buffer.concat(chunks);
-        const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
-        const request = new Request(url, {
-          method: req.method,
-          headers: req.headers as never,
-          body: body.length > 0 ? body : undefined,
-        });
-        const webRes = await app.fetch(request);
-        res.statusCode = webRes.status;
-        webRes.headers.forEach((v, k) => res.setHeader(k, v));
-        res.end(await webRes.text());
-      } catch (err) {
-        res.statusCode = 500;
-        res.end((err as Error).message);
-      }
-    });
-    server.listen(port, opts.host, () => {
-      logger.info({ host: opts.host, port, upstream }, 'paygate listening');
-    });
-  }
+  });
+
+  const shutdown = (signal: NodeJS.Signals): void => {
+    logger.info({ signal }, 'shutting down');
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(1), 10_000).unref();
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }

@@ -16,10 +16,12 @@ export const paygateFastify: FastifyPluginAsync<FastifyPayGateOptions> = async (
   });
 
   app.addHook('preHandler', async (req: FastifyRequest, reply: FastifyReply) => {
+    // Fastify 4+ removed `routerPath`; derive the path from the raw URL.
+    const [pathOnly = '/'] = req.url.split('?');
     const pgReq: PayGateRequest = {
       method: req.method,
       url: req.url,
-      path: req.routerPath ?? req.url.split('?')[0]!,
+      path: pathOnly,
       query: req.query as PayGateRequest['query'],
       headers: req.headers as PayGateRequest['headers'],
       ip: req.ip,
