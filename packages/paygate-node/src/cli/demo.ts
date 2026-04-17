@@ -311,10 +311,13 @@ export async function runDemo(opts: DemoOptions): Promise<void> {
   heading('Response body');
   console.log(settled.body.length > 500 ? settled.body.slice(0, 500) + '…' : settled.body);
 
-  if (settled.status >= 200 && settled.status < 300) {
+  // 200 means the upstream actually served the paid response.
+  // 202 means "settlement pending" — PayGate accepted the authorisation but
+  // has not yet seen it on-chain.  That's not a completed round-trip.
+  if (settled.status === 200 || settled.status === 204) {
     console.log('\n\x1b[32mx402 round-trip succeeded\x1b[0m');
   } else {
-    console.log('\n\x1b[31mx402 round-trip failed\x1b[0m');
+    console.log(`\n\x1b[31mx402 round-trip failed (status ${settled.status})\x1b[0m`);
     process.exitCode = 1;
   }
 }

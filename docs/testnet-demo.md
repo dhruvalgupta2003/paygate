@@ -47,7 +47,7 @@ solve the captcha. You'll get 10 USDC test tokens. Plenty.
 
 ```bash
 # Replace ADDR with your address
-ADDR=0xYourAddress
+ADDR=0x046c883149e8C099B61e5BbF2Ff52024710385Fb
 curl -s https://sepolia.base.org -X POST \
   -H 'Content-Type: application/json' \
   -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getBalance\",\"params\":[\"$ADDR\",\"latest\"]}"
@@ -116,7 +116,7 @@ node packages/paygate-node/dist/cli.js start --config paygate.config.yml --upstr
 ### Terminal 3 — agent
 
 ```bash
-PRIVATE_KEY=0xYourSenderPrivateKey
+PRIVATE_KEY=8b916793be9fb164a2628e36dbf13f541059104dd9701308d5c80133ae50e8e4
 node packages/paygate-node/dist/cli.js demo \
   --upstream http://localhost:4021 \
   --endpoint /api/v1/weather/sf \
