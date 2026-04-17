@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 1200×630 social card for OpenGraph / Twitter card. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="PayGate — x402 paywall for AI agents">
+  <title>PayGate — x402 paywall for AI agents</title>
+  <defs>
+    <linearGradient id="pgs-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B0A1A"/>
+      <stop offset="60%" stop-color="#1E1B4B"/>
+      <stop offset="100%" stop-color="#312E81"/>
+    </linearGradient>
+    <linearGradient id="pgs-flow" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <radialGradient id="pgs-glow" cx="0.75" cy="0.25" r="0.6">
+      <stop offset="0%" stop-color="#6D28D9" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#6D28D9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#pgs-bg)"/>
+  <rect width="1200" height="630" fill="url(#pgs-glow)"/>
+
+  <!-- dotted grid texture -->
+  <g fill="#A5B4FC" fill-opacity="0.08">
+    <circle cx="60" cy="60" r="2"/><circle cx="180" cy="60" r="2"/><circle cx="300" cy="60" r="2"/>
+    <circle cx="420" cy="60" r="2"/><circle cx="540" cy="60" r="2"/><circle cx="660" cy="60" r="2"/>
+    <circle cx="780" cy="60" r="2"/><circle cx="900" cy="60" r="2"/><circle cx="1020" cy="60" r="2"/>
+    <circle cx="1140" cy="60" r="2"/>
+    <circle cx="60" cy="180" r="2"/><circle cx="180" cy="180" r="2"/><circle cx="300" cy="180" r="2"/>
+    <circle cx="420" cy="180" r="2"/><circle cx="540" cy="180" r="2"/><circle cx="660" cy="180" r="2"/>
+    <circle cx="60" cy="300" r="2"/><circle cx="180" cy="300" r="2"/><circle cx="300" cy="300" r="2"/>
+    <circle cx="60" cy="420" r="2"/><circle cx="180" cy="420" r="2"/><circle cx="300" cy="420" r="2"/>
+    <circle cx="60" cy="540" r="2"/><circle cx="180" cy="540" r="2"/>
+  </g>
+
+  <!-- logo -->
+  <g transform="translate(80,180)">
+    <rect x="0" y="0" width="180" height="180" rx="36" ry="36" fill="#FFFFFF"/>
+    <rect x="36" y="44" width="22" height="92" rx="7" ry="7" fill="#4F46E5"/>
+    <rect x="122" y="44" width="22" height="92" rx="7" ry="7" fill="#4F46E5"/>
+    <circle cx="90" cy="90" r="28" fill="#4F46E5"/>
+    <path d="M58 90 L80 90 L74 77 L92 90 L74 103 L80 90"
+          fill="none" stroke="url(#pgs-flow)" stroke-width="10"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- wordmark -->
+  <g font-family="'Inter','SF Pro Display',system-ui,sans-serif">
+    <text x="310" y="238" font-size="88" font-weight="700" fill="#F8FAFC" letter-spacing="-3">paygate</text>
+    <text x="310" y="308" font-size="36" font-weight="500" fill="#A5B4FC" letter-spacing="-0.5">x402 paywall for AI agent traffic</text>
+  </g>
+
+  <!-- chips -->
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22">
+    <rect x="80" y="470" width="190" height="54" rx="27" ry="27" fill="#1E1B4B" stroke="#4F46E5"/>
+    <text x="175" y="505" text-anchor="middle" fill="#C7D2FE">usdc · base</text>
+    <rect x="290" y="470" width="220" height="54" rx="27" ry="27" fill="#1E1B4B" stroke="#4F46E5"/>
+    <text x="400" y="505" text-anchor="middle" fill="#C7D2FE">usdc · solana</text>
+    <rect x="530" y="470" width="260" height="54" rx="27" ry="27" fill="#1E1B4B" stroke="#4F46E5"/>
+    <text x="660" y="505" text-anchor="middle" fill="#C7D2FE">npm · pypi · docker</text>
+  </g>
+</svg>

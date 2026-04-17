@@ -1,0 +1,137 @@
+# Deploy a preview of the docs site (Nextra/Docusaurus placeholder) on PR.
+# Defaults to Nextra at `docs/` if `docs/package.json` exists, otherwise renders
+# the Markdown into a static site via `npx markdown-folder-to-html` fallback.
+
+name: Docs Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-preview.yml"
+
+concurrency:
+  group: docs-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "9.12.0"
+  NODE_VERSION: "20.18.0"
+
+jobs:
+  preview:
+    name: Build + deploy docs preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      deployments: write
+
+    environment:
+      name: docs-preview
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Detect docs framework
+        id: detect
+        shell: bash
+        run: |
+          if [[ -f docs/package.json ]]; then
+            echo "framework=nextra" >> "$GITHUB_OUTPUT"
+          else
+            echo "framework=markdown" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Nextra/Docusaurus
+        if: steps.detect.outputs.framework == 'nextra'
+        working-directory: docs
+        run: |
+          pnpm install --frozen-lockfile=false
+          pnpm build
+
+      - name: Build static markdown site (fallback)
+        if: steps.detect.outputs.framework == 'markdown'
+        run: |
+          mkdir -p docs-dist
+          pnpm dlx @mr-hope/markdown-it-html@latest --help >/dev/null 2>&1 || true
+          # Minimal static HTML index linking every .md file in docs/
+          cat > docs-dist/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <title>PayGate docs preview</title>
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <style>
+              body{font-family:ui-sans-serif,system-ui,sans-serif;max-width:72ch;margin:3rem auto;padding:0 1.5rem;color:#111;}
+              h1{font-weight:650;letter-spacing:-0.01em}
+              ul{padding-left:1.2rem}
+              a{color:#1a0dab}
+            </style>
+          </head>
+          <body>
+            <h1>PayGate docs preview</h1>
+            <ul>
+          HTML
+          find docs -maxdepth 4 -type f -name '*.md' | sort | while read -r f; do
+            rel=${f#docs/}
+            printf '<li><a href="%s">%s</a></li>\n' "$rel" "$rel" >> docs-dist/index.html
+          done
+          echo '</ul></body></html>' >> docs-dist/index.html
+          cp -R docs/. docs-dist/
+
+      - name: Deploy preview to Netlify
+        id: deploy
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_DOCS_SITE_ID != '' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_DOCS_SITE_ID: ${{ secrets.NETLIFY_DOCS_SITE_ID }}
+        run: |
+          set -euo pipefail
+          dir="docs-dist"
+          if [[ "${{ steps.detect.outputs.framework }}" == "nextra" ]]; then
+            dir="docs/.next/out"
+            [[ -d "$dir" ]] || dir="docs/out"
+          fi
+          output=$(pnpm dlx netlify-cli@latest deploy \
+            --dir "$dir" \
+            --site "$NETLIFY_DOCS_SITE_ID" \
+            --alias docs-pr-${{ github.event.pull_request.number }} \
+            --message "Docs preview PR #${{ github.event.pull_request.number }}" \
+            --json)
+          url=$(echo "$output" | jq -r '.deploy_url')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Skip deploy (no Netlify secrets)
+        if: ${{ env.NETLIFY_AUTH_TOKEN == '' || env.NETLIFY_DOCS_SITE_ID == '' }}
+        run: echo "Missing NETLIFY_AUTH_TOKEN / NETLIFY_DOCS_SITE_ID — skipping deploy"
+
+      - name: Comment preview URL
+        if: steps.deploy.outputs.url != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: docs-preview
+          message: |
+            ### Docs preview ready
+
+            - URL: ${{ steps.deploy.outputs.url }}
+            - Commit: `${{ github.sha }}`

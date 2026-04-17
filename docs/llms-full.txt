@@ -1,0 +1,480 @@
+# PayGate — Flattened Knowledge Dump for LLMs
+
+> This file is optimised for retrieval-augmented generation. Sections are
+> self-contained; each is fully tagged with context so a model can answer
+> PayGate questions from a single chunk.
+>
+> Generator: hand-curated, updated per release. For a concise index see
+> `docs/llms.txt`.
+
+---
+
+## 1. Project identity
+
+- **Name:** PayGate
+- **One-liner:** x402 paywall for AI agent traffic. Drop-in proxy + SDKs for
+  Node and Python. USDC on Base and Solana.
+- **Stage:** public alpha, semver v0.x (breaking changes possible).
+- **License:** MIT (SDKs, proxy, examples). Commercial dashboard is optional.
+- **Primary packages:** `@paygate/node` (npm), `paygate` (PyPI), `paygate/proxy`
+  (Docker image, `ghcr.io/paygate/proxy`).
+
+---
+
+## 2. Who uses PayGate
+
+1. Indie API developers monetising agent traffic without invoicing.
+2. AI tool builders exposing services to other agents (summarisation, image
+   gen, code review).
+3. Web scraping / data aggregation services that want per-request pricing.
+4. SaaS companies opening a new revenue stream from agent consumption.
+
+---
+
+## 3. The x402 protocol in one page
+
+HTTP 402 is a status code reserved for "Payment Required" but was never used —
+until x402. The x402 spec (backed by Coinbase) repurposes 402 for
+machine-to-machine payments.
+
+Flow:
+
+1. **Agent** issues `GET /api/v1/weather/sf`.
+2. **Server** (PayGate) responds `402 Payment Required` with a JSON body
+   containing `PaymentRequirements`:
+   - `chain` — e.g. `base`, `solana`
+   - `asset` — e.g. USDC contract address
+   - `amount` — in smallest unit (6 decimals for USDC)
+   - `payTo` — the receiving wallet
+   - `nonce` — server-issued, used for replay protection
+   - `validUntil` — absolute unix seconds; short (5 min default)
+   - `mode` — `facilitator` | `direct`
+   - `scheme` — `exact` | `upto` (we use `exact`)
+3. **Agent** picks a chain, crafts a payment authorisation:
+   - On EVM: an EIP-3009 `TransferWithAuthorization` signature (USDC
+     implements this), or an on-chain transfer with a memo matching the
+     nonce.
+   - On Solana: a signed versioned transaction that transfers USDC to `payTo`
+     with the nonce embedded in a memo-program instruction.
+4. **Agent** retries the same request with `X-PAYMENT:` header carrying the
+   base64-encoded authorisation.
+5. **PayGate** verifies:
+   - Signature is valid over the payment parameters.
+   - Nonce has not been used (Redis SET NX with TTL).
+   - `validUntil` not expired.
+   - Amount ≥ required amount for this endpoint.
+   - `payTo` matches the configured receiver for this chain.
+   - On-chain settlement status matches required confirmations.
+6. **PayGate** either:
+   - **Direct mode:** submits the transaction itself (or relies on the agent
+     having submitted it) and waits for the configured number of
+     confirmations.
+   - **Facilitator mode:** hits the Coinbase facilitator `/verify` then
+     `/settle` endpoints; both are deterministic and return within ~200 ms.
+7. **PayGate** forwards the original request to the upstream API and relays
+   the response back with an `X-PAYMENT-RESPONSE` header containing the
+   settlement receipt (tx hash, block, settled amount).
+
+Failure modes and responses:
+
+- Invalid signature → `402` + `error: invalid_signature`.
+- Replay (nonce used) → `402` + `error: nonce_reused`.
+- Expired → `402` + `error: expired_authorization`.
+- Wrong recipient → `402` + `error: recipient_mismatch`.
+- Underpaid → `402` + `error: amount_insufficient`, includes `shortfall`.
+- Rate limited → `429` + `Retry-After`.
+
+---
+
+## 4. Architecture
+
+```
+┌────────────┐      ┌────────────────────────┐      ┌────────────┐
+│  AI Agent  │◀────▶│      PayGate Proxy     │◀────▶│  Upstream  │
+└────────────┘      │  ┌──────────────────┐  │      └────────────┘
+                    │  │ Request gateway  │  │
+                    │  │ Config matcher   │  │
+                    │  │ Cache            │  │
+                    │  │ Rate limiter     │  │
+                    │  └─────────┬────────┘  │
+                    │            ▼           │      ┌────────────┐
+                    │  ┌──────────────────┐  │────▶│  Facilitator│
+                    │  │ x402 handshake   │  │      │  (Coinbase) │
+                    │  └─────────┬────────┘  │      └────────────┘
+                    │            ▼           │
+                    │  ┌──────────────────┐  │      ┌────────────┐
+                    │  │ Verifier (Base,  │  │────▶│  RPC nodes  │
+                    │  │ Solana, ...)     │  │      │  (Alchemy…) │
+                    │  └─────────┬────────┘  │      └────────────┘
+                    │            ▼           │
+                    │  ┌──────────────────┐  │      ┌────────────┐
+                    │  │ Idempotency +    │  │────▶│  Redis      │
+                    │  │ replay guard     │  │      └────────────┘
+                    │  └─────────┬────────┘  │
+                    │            ▼           │      ┌────────────┐
+                    │  ┌──────────────────┐  │────▶│  Postgres   │
+                    │  │ Analytics, audit │  │      └────────────┘
+                    │  └──────────────────┘  │
+                    └────────────────────────┘
+```
+
+Components:
+
+- **Request gateway** — accepts incoming HTTP, matches endpoint rules, terminates
+  TLS when deployed standalone.
+- **Config matcher** — deterministic glob match (`path`, `method`, header
+  conditions). First-match wins.
+- **Cache** — optional Redis or in-memory cache for successful responses keyed
+  by `(endpoint, normalized query, payment-required ? nonce : "public")`.
+- **Rate limiter** — token bucket per scope (wallet, IP, endpoint).
+- **x402 handshake** — encodes `PaymentRequirements`, decodes `X-PAYMENT`
+  headers, enforces schema.
+- **Verifier** — per-chain adapter (`ChainAdapter`) implementing
+  `buildPaymentRequirements`, `verifyPayment`, `confirmPayment`.
+- **Idempotency + replay guard** — Redis SET NX with TTL. Keyed by nonce.
+- **Analytics + audit** — writes per-request log to Postgres + append-only
+  hash-chained log to disk (exportable to S3/GCS).
+- **Facilitator client** — optional Coinbase x402 facilitator.
+
+Deployment topologies:
+
+- **Sidecar** — PayGate runs next to the upstream; `--upstream http://localhost:3000`.
+- **Gateway** — PayGate fronts many services; `--upstream` per config block.
+- **Middleware** — imported into the app directly (Express/Fastify/Hono/Next/
+  FastAPI/Flask/Django/Starlette).
+
+---
+
+## 5. Config schema (canonical)
+
+```yaml
+version: 1
+project:
+  name: my-api
+  slug: my-api
+wallets:
+  base: 0x...
+  solana: <b58>
+defaults:
+  chain: base
+  currency: USDC
+  confirmations: 2
+  payment_ttl_seconds: 300
+  facilitator: coinbase
+endpoints:
+  - path: /api/v1/data/*
+    method: [GET, POST]
+    price_usdc: 0.001
+  - path: /api/v1/premium/**
+    price_usdc: 0.05
+cache:
+  enabled: true
+  driver: redis
+  default_ttl_seconds: 60
+rate_limits:
+  - scope: wallet
+    limit: 600
+    window_seconds: 60
+compliance:
+  sanctions_screening: true
+  geo_blocklist: []
+webhooks:
+  - url: https://example.com/paygate/webhook
+    secret_env: WEBHOOK_SHARED_SECRET
+    events: [payment.settled, payment.refunded]
+discovery:
+  listed: true
+advanced:
+  upstream_timeout_ms: 15000
+  max_request_body_mb: 5
+```
+
+Validation: every field is validated by Zod (Node) and Pydantic (Python).
+Unknown keys are rejected. `version` gates migrations.
+
+---
+
+## 6. SDK — Node.js (@paygate/node)
+
+Exports:
+
+- `paygate(config)` — returns framework-agnostic request handler.
+- `express(config)` — Express middleware factory.
+- `fastify(config)` — Fastify plugin.
+- `hono(config)` — Hono middleware.
+- `next(config)` — Next.js App Router handler adapter.
+- `createProxy(config)` — standalone HTTP proxy.
+- `loadConfig(path)` — YAML/JSON loader + Zod validation.
+- `startServer(opts)` — used by CLI.
+- `PayGateError`, `errorCodes` — public error types.
+
+Minimum Node: **20.10.0**.
+
+Runtime dependencies (intentionally small):
+
+- `zod`, `yaml`, `undici`, `hono`, `pino`, `commander`, `ioredis`,
+  `viem` (EVM RPC + typed chain), `@solana/web3.js`, `@solana/spl-token`,
+  `bs58`, `tweetnacl`, `prom-client`, `@opentelemetry/api`.
+
+CLI:
+
+```bash
+paygate start --config paygate.config.yml --upstream http://localhost:3000
+paygate verify --chain base --tx 0x...
+paygate simulate --config paygate.config.yml --request request.http
+paygate keys generate-webhook-secret
+paygate directory submit
+paygate doctor
+```
+
+---
+
+## 7. SDK — Python (paygate)
+
+Exports:
+
+- `paygate.Proxy(config)` — framework-agnostic ASGI proxy.
+- `paygate.fastapi.PayGateMiddleware` — ASGI middleware.
+- `paygate.flask.paygate_middleware(config)` — WSGI middleware for Flask.
+- `paygate.django.PayGateMiddleware` — Django middleware class.
+- `paygate.starlette.PayGateMiddleware` — Starlette middleware.
+- `paygate.load_config(path)` — YAML/JSON loader + Pydantic validation.
+- `paygate.errors.PayGateError` + error codes.
+- `paygate.cli:app` — Typer CLI (entry point `paygate`).
+
+Minimum Python: **3.11**.
+
+Core dependencies:
+
+- `pydantic>=2.8`, `pyyaml`, `httpx`, `typer`, `uvicorn`, `redis`, `web3`,
+  `eth-account`, `solders`, `solana`, `opentelemetry-api`,
+  `prometheus-client`, `structlog`, `tenacity`.
+
+---
+
+## 8. Base integration details
+
+- USDC mainnet contract: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` (6
+  decimals).
+- USDC Base Sepolia: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`.
+- USDC implements EIP-3009. PayGate prefers
+  `TransferWithAuthorization` — the agent signs, PayGate submits.
+- For reorg safety, PayGate waits for `confirmations_base` blocks
+  (default 2). 0 confirmations is available but only with facilitator mode.
+- Gas: paid by PayGate (or by the agent in direct mode). Base fees ~$0.0001.
+- Finality: Base inherits Ethereum's L1 finality after ~15 min via batch
+  posting; PayGate treats 2 block confirmations as "economically final" for
+  micropayments.
+
+---
+
+## 9. Solana integration details
+
+- USDC mainnet mint: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (6
+  decimals).
+- USDC devnet mint: `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`.
+- Associated Token Accounts (ATAs) are resolved deterministically; PayGate
+  verifies the destination ATA belongs to the configured receiver.
+- Transactions are versioned and include a `MemoInstruction` carrying the
+  base64-encoded nonce.
+- Finality: PayGate defaults to `confirmed` for micropayments (~400 ms) and
+  `finalized` (~13 s) for payments above the configurable threshold.
+- Priority fees: PayGate adds a ComputeBudget instruction targeting the
+  chain's median priority fee over the last 50 blocks.
+- Address Lookup Tables: optional per-config ALT can reduce repeat
+  transactions below 128 bytes to stay in a single packet.
+
+---
+
+## 10. Security invariants
+
+- **I1 (amount exact):** `settled_amount ≥ required_amount` and
+  `settled_asset == required_asset`.
+- **I2 (recipient exact):** `settled_recipient == configured_recipient[chain]`.
+- **I3 (chain exact):** the settlement tx executed on the requested chain.
+- **I4 (nonce one-shot):** `INCR paygate:nonce:{nonce}` returns exactly 1.
+  Any other value rejects as `nonce_reused`.
+- **I5 (TTL):** `now ≤ validUntil` using monotonic clock.
+- **I6 (signature):** cryptographic signature verifies against the canonical
+  digest derived from `PaymentRequirements`.
+- **I7 (confirmations):** settlement has ≥ required confirmations or is
+  `confirmed` / `finalized` per config.
+- **I8 (idempotency):** identical `(nonce, chain, payTo)` replayed within
+  TTL serves the cached response instead of a second settlement.
+- **I9 (upstream only after settle):** the upstream API is only called after
+  I1–I8 pass.
+
+Failure of any invariant yields a `402` response with `error` + `detail` and
+is recorded in the audit log.
+
+---
+
+## 11. Rate limits
+
+Scopes: `wallet`, `ip`, `endpoint`, `global`.
+Bucket: token bucket in Redis with `fill_rate` + `capacity`.
+Defaults:
+
+- `wallet`: 600 req/min.
+- `ip`: 120 req/min.
+- `global`: unbounded (cap via deployment env).
+
+Exceeding → `429` + `Retry-After`. Rate limits are bypassed for the
+configured `admin_secret` (used by the dashboard).
+
+---
+
+## 12. Compliance
+
+- **Sanctions screening** — Circle sanctions API + a local OFAC SDN snapshot
+  (refreshed hourly). Matches block the request and emit a
+  `compliance.blocked` event.
+- **Geo-blocklist** — IP-geolocated via local MaxMind GeoLite2. ISO country
+  codes.
+- **Travel rule** — any transaction ≥ `travel_rule_threshold_usd` triggers a
+  signed JSON payload to the configured compliance webhook.
+- **GDPR** — wallet addresses are treated as pseudonymous identifiers. If a
+  data subject request arrives, PayGate redacts the wallet from analytics
+  via tombstone rows while preserving aggregate totals.
+- **SOC 2** — access reviews, change-management logs, incident records are
+  written to an append-only log under `ops/audit/*.ndjson` and can be
+  exported nightly.
+
+---
+
+## 13. Observability
+
+- **Logs** — JSON via `pino` (Node) and `structlog` (Python). Fields:
+  `timestamp`, `level`, `service`, `trace_id`, `span_id`, `request_id`,
+  `endpoint`, `chain`, `nonce` (truncated), `wallet` (truncated), `amount`,
+  `outcome`.
+- **Metrics** — Prometheus on `/metrics` (port 9464 by default). Names:
+  `paygate_requests_total{outcome,endpoint,chain}`,
+  `paygate_settlement_latency_seconds{chain}`,
+  `paygate_verification_latency_seconds{chain}`,
+  `paygate_rate_limit_drops_total{scope}`,
+  `paygate_replay_rejects_total`, and a few others.
+- **Tracing** — OpenTelemetry. Spans for `handshake`, `verify`, `settle`,
+  `upstream`, emitted with chain + outcome attributes.
+- **SLOs** — `availability_5m ≥ 99.9%`, `p99 verify ≤ 250 ms`,
+  `p99 settle ≤ 1.5 s` (Base), `p99 settle ≤ 800 ms` (Solana).
+
+---
+
+## 14. Error taxonomy
+
+| Code | HTTP | Retryable | Meaning |
+|------|------|-----------|---------|
+| `PAYMENT_REQUIRED` | 402 | yes | No `X-PAYMENT` header yet. |
+| `INVALID_SIGNATURE` | 402 | no | Signature doesn't verify. |
+| `NONCE_REUSED` | 402 | no | Server has seen this nonce. |
+| `EXPIRED_AUTHORIZATION` | 402 | yes | Past `validUntil`. |
+| `RECIPIENT_MISMATCH` | 402 | no | `payTo` ≠ configured wallet. |
+| `CHAIN_MISMATCH` | 402 | no | Wrong chain. |
+| `AMOUNT_INSUFFICIENT` | 402 | yes | Underpaid. |
+| `ASSET_MISMATCH` | 402 | no | Wrong token contract. |
+| `SETTLEMENT_PENDING` | 202 | yes | Retry with same authorisation. |
+| `SETTLEMENT_FAILED` | 402 | yes | Onchain revert or tx dropped. |
+| `COMPLIANCE_BLOCKED` | 451 | no | Sanctions / geo blocked. |
+| `RATE_LIMITED` | 429 | yes | Over token bucket. |
+| `BAD_CONFIG` | 500 | no | Deployment misconfig. |
+| `UPSTREAM_FAILED` | 502 | yes | Your API errored *after* settle. |
+| `INTERNAL` | 500 | yes | Unexpected. |
+
+---
+
+## 15. Retry policies
+
+- Clients (agents) should honour `Retry-After` and use jittered exponential
+  backoff capped at `payment_ttl_seconds`.
+- Internal retries use `tenacity` (Python) and a custom retry helper (Node)
+  with full jitter, retry only idempotent operations.
+
+---
+
+## 16. Scaling
+
+- PayGate proxy is stateless. Scale horizontally behind any L4 LB.
+- Redis for nonce + rate limit. Use cluster mode ≥ 3 shards when
+  `requests_per_second > 500` to avoid hot keys.
+- Postgres read replicas for analytics queries. Writes stay on primary.
+- RPC providers: configure at least **two** per chain (Alchemy + QuickNode)
+  with priority + cooldown failover.
+- Use `confirmations_base=2` for most APIs; `confirmations_base=1` only for
+  sub-$0.01 endpoints in facilitator mode.
+
+---
+
+## 17. Threat model (summary)
+
+- **Replay attacks** — prevented by I4.
+- **Amount manipulation** — prevented by I1 + digest binding.
+- **Recipient swap** — prevented by I2.
+- **Front-running** — PayGate only honours already-settled transactions;
+  front-running does not let an attacker bypass payment.
+- **Reorg attacks** — mitigated by confirmations; optional `finalized` mode.
+- **Facilitator compromise** — direct mode is always available as a fallback.
+- **Data exfiltration** — wallet + request metadata is separated from
+  response bodies; audit log can be retained short-term.
+- **Supply chain** — reproducible builds, SBOMs, Sigstore-signed releases.
+
+---
+
+## 18. Frequently asked questions
+
+- *Do agents need signup?* No. They just need an x402 wallet with USDC.
+- *Does the API owner need custody?* Only a receiving address. No private key
+  management.
+- *Does PayGate charge a fee?* The open-source version does not. The hosted
+  directory/dashboard charges 1.5% on processed volume (optional).
+- *Can I use stablecoins other than USDC?* Not in v0.1. USDC is ≥ 98% of
+  x402 volume today; other stables are on the roadmap.
+- *Does it work behind Cloudflare?* Yes. Set `advanced.trust_proxy: true`.
+- *How do I test locally without funds?* Use `PAYGATE_DEV_MODE=true` or
+  Base Sepolia / Solana devnet faucets.
+
+---
+
+## 19. Directory of concepts
+
+- **x402** — HTTP 402 Payment Required repurposed for M2M payments.
+- **Facilitator** — Coinbase-hosted service that verifies + settles x402
+  payments deterministically.
+- **EIP-3009** — ERC-20 extension allowing gasless transfers via a signed
+  typed-data authorisation.
+- **Associated Token Account (ATA)** — the canonical SPL token account for a
+  `(wallet, mint)` pair on Solana.
+- **MemoInstruction** — a Solana program that allows a transaction to carry
+  a UTF-8 memo string, used here for the nonce.
+- **Nonce** — opaque 128-bit random string server-issued on each 402 and
+  required to be exact-echoed on payment.
+- **Settlement receipt** — `(chain, tx_hash, block_number_or_slot,
+  settled_amount, observed_at)` returned in `X-PAYMENT-RESPONSE`.
+- **Direct mode** — PayGate verifies the tx itself via RPC; no facilitator.
+- **Facilitator mode** — PayGate delegates verify + settle to an external
+  facilitator (default: Coinbase x402.org).
+
+---
+
+## 20. Canonical error messages
+
+Use these strings verbatim when generating client SDK error classes:
+
+- `payment required: this endpoint requires a x402 payment`
+- `invalid signature: payment authorisation failed verification`
+- `nonce reused: this payment authorisation has already been redeemed`
+- `authorization expired: reissue a fresh authorisation`
+- `recipient mismatch: payTo does not match configured wallet`
+- `amount insufficient: required {required}, got {got} (shortfall {shortfall})`
+- `compliance blocked: sanctions or geo restriction applies`
+- `rate limited: retry after {seconds} seconds`
+
+---
+
+## 21. Versioning
+
+- All publishable packages use semver.
+- `@paygate/node` and `paygate` share a coordinated major version.
+- Breaking config changes bump the `version:` field in `paygate.config.yml`
+  and trigger a migration prompt in the CLI.
+- Deprecations stay one minor version before removal.

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": true,
+  "include-v-in-tag": true,
+  "include-component-in-tag": true,
+  "separate-pull-requests": false,
+  "plugins": ["node-workspace"],
+  "changelog-sections": [
+    { "type": "feat", "section": "Features", "hidden": false },
+    { "type": "fix", "section": "Bug Fixes", "hidden": false },
+    { "type": "perf", "section": "Performance", "hidden": false },
+    { "type": "sec", "section": "Security", "hidden": false },
+    { "type": "refactor", "section": "Refactors", "hidden": false },
+    { "type": "docs", "section": "Documentation", "hidden": false },
+    { "type": "build", "section": "Build", "hidden": true },
+    { "type": "ci", "section": "CI", "hidden": true },
+    { "type": "chore", "section": "Chores", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true }
+  ],
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "paygate",
+      "include-component-in-tag": false,
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/paygate-node": {
+      "release-type": "node",
+      "package-name": "@paygate/node",
+      "component": "node",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "packages/paygate-python": {
+      "release-type": "python",
+      "package-name": "paygate",
+      "component": "python",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": ["pyproject.toml"]
+    },
+    "apps/api": {
+      "release-type": "node",
+      "package-name": "@paygate/api",
+      "component": "api",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "apps/dashboard": {
+      "release-type": "node",
+      "package-name": "@paygate/dashboard",
+      "component": "dashboard",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

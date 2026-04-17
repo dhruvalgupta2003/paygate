@@ -1,0 +1,46 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [".env", "tsconfig.base.json"],
+  "globalEnv": [
+    "NODE_ENV",
+    "LOG_LEVEL",
+    "PAYGATE_WALLET_ADDRESS",
+    "PAYGATE_CHAIN",
+    "PAYGATE_RPC_URL",
+    "PAYGATE_FACILITATOR_URL",
+    "PAYGATE_DATABASE_URL",
+    "PAYGATE_REDIS_URL",
+    "PAYGATE_ADMIN_SECRET"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "lib/**", ".next/**", "!.next/cache/**"],
+      "inputs": [
+        "src/**",
+        "tsconfig*.json",
+        "package.json",
+        "tsup.config.*",
+        "vite.config.*"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

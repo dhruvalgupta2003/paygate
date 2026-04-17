@@ -1,0 +1,91 @@
+# actions/labeler v5 config — maps changed paths to labels.
+# Reference: https://github.com/actions/labeler
+
+area/node-sdk:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/paygate-node/**"
+
+area/python-sdk:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "packages/paygate-python/**"
+
+area/dashboard:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/dashboard/**"
+
+area/api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "apps/api/**"
+
+area/docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "AGENTS.md"
+          - "CONTRIBUTING.md"
+
+area/contracts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "contracts/**"
+
+area/contracts/base:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "contracts/base/**"
+
+area/contracts/solana:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "contracts/solana/**"
+
+area/examples:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "examples/**"
+
+area/ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "scripts/**"
+
+area/docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/Dockerfile"
+          - "docker-compose.yml"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/verification/**"
+          - "**/chains/**"
+          - "contracts/**"
+          - "SECURITY.md"
+          - ".github/workflows/security-scan.yml"
+          - ".github/workflows/codeql.yml"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/package.json"
+          - "**/pnpm-lock.yaml"
+          - "**/pyproject.toml"
+          - "**/hatch.toml"
+          - "**/requirements*.txt"
+          - ".github/dependabot.yml"
+          - ".github/renovate.json"
+
+release:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".changeset/**"
+          - "CHANGELOG.md"
+          - ".github/release-please-config.json"
+          - ".github/.release-please-manifest.json"

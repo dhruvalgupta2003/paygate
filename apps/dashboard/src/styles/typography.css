@@ -1,0 +1,59 @@
+/*
+ * Typographic scale.
+ * One display face (Inter Display via variable font), one body (Inter),
+ * one mono (system). Strict hierarchy enforced via semantic classes.
+ */
+
+.pg-display {
+  font-family: 'Inter', 'InterVariable', system-ui, sans-serif;
+  font-feature-settings: 'ss03', 'cv11', 'cv02';
+  font-variation-settings: 'opsz' 32;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.pg-display-xl {
+  font-size: clamp(2.25rem, 1.6rem + 1.6vw, 3.25rem);
+  line-height: 1.05;
+}
+
+.pg-display-lg {
+  font-size: clamp(1.75rem, 1.3rem + 1.2vw, 2.375rem);
+  line-height: 1.1;
+}
+
+.pg-display-md {
+  font-size: clamp(1.375rem, 1.15rem + 0.6vw, 1.625rem);
+  line-height: 1.15;
+}
+
+.pg-headline {
+  font-family: 'Inter', 'InterVariable', system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.pg-body {
+  font-family: 'Inter', 'InterVariable', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+.pg-mono {
+  font-family: 'ui-monospace', SFMono-Regular, Menlo, Consolas, monospace;
+  font-feature-settings: 'ss01', 'zero';
+  letter-spacing: 0;
+}
+
+.pg-label {
+  font-family: 'Inter', 'InterVariable', system-ui, sans-serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6875rem;
+}
+
+.pg-numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum', 'zero';
+}

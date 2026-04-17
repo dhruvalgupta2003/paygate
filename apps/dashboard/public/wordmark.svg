@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Horizontal lockup: mark + wordmark. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" role="img" aria-label="paygate">
+  <title>paygate</title>
+  <defs>
+    <linearGradient id="pgw-body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="55%" stop-color="#6D28D9"/>
+      <stop offset="100%" stop-color="#312E81"/>
+    </linearGradient>
+    <linearGradient id="pgw-flow" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(20,10)">
+    <rect x="0" y="0" width="200" height="200" rx="40" ry="40" fill="url(#pgw-body)"/>
+    <rect x="42" y="50" width="22" height="100" rx="7" ry="7" fill="#F8FAFC"/>
+    <rect x="136" y="50" width="22" height="100" rx="7" ry="7" fill="#F8FAFC"/>
+    <circle cx="100" cy="100" r="29" fill="#F8FAFC"/>
+    <path d="M66 100 L88 100 L82 87 L100 100 L82 113 L88 100"
+          fill="none" stroke="url(#pgw-flow)" stroke-width="11"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(260,140)" font-family="'Inter','SF Pro Display',system-ui,sans-serif" font-weight="700" font-size="116" letter-spacing="-3">
+    <text fill="#0B0A1A">paygate</text>
+  </g>
+</svg>

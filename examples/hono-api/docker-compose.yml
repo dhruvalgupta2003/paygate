@@ -1,0 +1,48 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: paygate-example-hono-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../..
+      dockerfile: examples/hono-api/Dockerfile
+    container_name: paygate-example-hono-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 3000
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  proxy:
+    image: ghcr.io/paygate/proxy:latest
+    container_name: paygate-example-hono-proxy
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PAYGATE_REDIS_URL: redis://redis:6379
+      PAYGATE_UPSTREAM_URL: http://api:3000
+    command: ["start", "--config", "/app/paygate.config.yml"]
+    volumes:
+      - ./paygate.config.yml:/app/paygate.config.yml:ro
+    ports:
+      - "4021:4021"
+    depends_on:
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started

@@ -1,0 +1,54 @@
+# Reusable composite: checkout + setup-python + hatch env create.
+
+name: Reusable · Setup Python + hatch
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: Python version
+        required: false
+        type: string
+        default: "3.12"
+      working-directory:
+        description: Working directory
+        required: false
+        type: string
+        default: "packages/paygate-python"
+      create-env:
+        description: Run `hatch env create`
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  setup:
+    name: Setup Python + hatch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+          cache: pip
+
+      - name: Install hatch
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "hatch>=1.12"
+
+      - name: Hatch env create
+        if: inputs.create-env
+        run: hatch env create

@@ -1,0 +1,52 @@
+# PayGate config — FastAPI example (Base Sepolia testnet).
+version: 1
+
+project:
+  name: paygate-example-fastapi
+  slug: paygate-example-fastapi
+  description: Minimal FastAPI app protected by PayGate on Base Sepolia.
+  contact: hello@example.com
+
+wallets:
+  base: ${PAYGATE_WALLET_BASE_SEPOLIA}
+
+defaults:
+  chain: base-sepolia
+  currency: USDC
+  confirmations: 1
+  payment_ttl_seconds: 300
+  facilitator: coinbase
+
+endpoints:
+  - path: /healthz
+    price_usdc: 0
+  - path: /api/v1/weather/*
+    method: [GET]
+    price_usdc: 0.001
+    description: Per-city weather lookup.
+  - path: /api/v1/score
+    method: [POST]
+    price_usdc: 0.001
+    description: Feature-vector scoring endpoint.
+
+cache:
+  enabled: true
+  driver: redis
+  default_ttl_seconds: 60
+  rules:
+    - path: /api/v1/weather/*
+      ttl_seconds: 300
+
+rate_limits:
+  - scope: wallet
+    limit: 600
+    window_seconds: 60
+
+compliance:
+  sanctions_screening: true
+  geo_blocklist: []
+  travel_rule_threshold_usd: 3000
+
+discovery:
+  listed: false
+  categories: [weather, scoring]

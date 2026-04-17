@@ -1,0 +1,178 @@
+version: 2
+
+updates:
+  # -----------------------------------------------------------------------
+  # npm: root + workspaces
+  # -----------------------------------------------------------------------
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels:
+      - dependencies
+      - npm
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      evm-libs:
+        patterns:
+          - "viem"
+          - "ethers"
+          - "@wagmi/*"
+      solana-libs:
+        patterns:
+          - "@solana/*"
+          - "@solana/web3.js"
+          - "@solana/spl-token"
+          - "bs58"
+          - "tweetnacl"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      react-ui:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+      dev-tooling:
+        dependency-type: development
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: "/packages/paygate-node"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - npm
+      - paygate-node
+    commit-message:
+      prefix: chore(node-sdk)
+      include: scope
+
+  - package-ecosystem: npm
+    directory: "/apps/api"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - npm
+      - api
+    commit-message:
+      prefix: chore(api)
+      include: scope
+
+  - package-ecosystem: npm
+    directory: "/apps/dashboard"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - npm
+      - dashboard
+    commit-message:
+      prefix: chore(dashboard)
+      include: scope
+
+  # -----------------------------------------------------------------------
+  # Python (pip) — packages/paygate-python
+  # -----------------------------------------------------------------------
+  - package-ecosystem: pip
+    directory: "/packages/paygate-python"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - python
+    commit-message:
+      prefix: chore(python)
+      include: scope
+    groups:
+      solana-py:
+        patterns:
+          - "solders"
+          - "solana"
+      web3-py:
+        patterns:
+          - "web3"
+          - "eth-account"
+
+  # -----------------------------------------------------------------------
+  # Docker base images
+  # -----------------------------------------------------------------------
+  - package-ecosystem: docker
+    directory: "/packages/paygate-node"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: chore(docker)
+      include: scope
+
+  - package-ecosystem: docker
+    directory: "/apps/api"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: chore(docker)
+
+  - package-ecosystem: docker
+    directory: "/apps/dashboard"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: chore(docker)
+
+  - package-ecosystem: docker
+    directory: "/packages/paygate-python"
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - docker
+    commit-message:
+      prefix: chore(docker)
+
+  # -----------------------------------------------------------------------
+  # GitHub Actions
+  # -----------------------------------------------------------------------
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: chore(ci)
+      include: scope
+    groups:
+      actions-all:
+        patterns:
+          - "*"

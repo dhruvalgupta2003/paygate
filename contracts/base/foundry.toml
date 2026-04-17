@@ -1,0 +1,31 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.28"
+optimizer = true
+optimizer_runs = 10_000
+via_ir = true
+bytecode_hash = "none"
+cbor_metadata = false
+fuzz = { runs = 1024 }
+invariant = { runs = 256, depth = 32 }
+gas_reports = ["PayGateReceipts"]
+fs_permissions = [{ access = "read", path = "./" }]
+
+[fmt]
+line_length = 100
+tab_width = 4
+bracket_spacing = true
+int_types = "preserve"
+func_attrs_with_params_multiline = false
+
+[rpc_endpoints]
+base      = "${PAYGATE_BASE_RPC_URL}"
+sepolia   = "${PAYGATE_BASE_SEPOLIA_RPC_URL}"
+
+[etherscan]
+base    = { key = "${BASESCAN_KEY}", chain = 8453 }
+sepolia = { key = "${BASESCAN_KEY}", chain = 84532 }

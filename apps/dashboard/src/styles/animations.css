@@ -1,0 +1,66 @@
+/*
+ * Intentional motion primitives.
+ * Everything stays on transform/opacity — no layout-bound animation.
+ */
+
+@keyframes pg-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.pg-live-dot {
+  animation: pg-live-pulse 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes pg-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.pg-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(11, 10, 26, 0.04) 0%,
+    rgba(11, 10, 26, 0.1) 50%,
+    rgba(11, 10, 26, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: pg-shimmer 1600ms linear infinite;
+  border-radius: var(--pg-radius-md);
+}
+
+.dark .pg-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .pg-skeleton,
+  .pg-live-dot {
+    animation: none !important;
+  }
+}

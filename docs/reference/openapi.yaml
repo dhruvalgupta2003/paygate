@@ -1,0 +1,213 @@
+openapi: 3.1.0
+info:
+  title: PayGate Admin API
+  description: |
+    PayGate's admin API.  Every dashboard action + operator script uses this
+    surface.  The live proxy HTTP surface (proxying agent traffic) is
+    documented at `/Users/dhruvalgupta/Desktop/PayGate/docs/api-reference.md`.
+  version: 0.1.0
+  license: { name: MIT, url: https://github.com/paygate/paygate/blob/main/LICENSE }
+servers:
+  - url: http://localhost:4020
+    description: Local development
+  - url: https://api.paygate.dev
+    description: Hosted PayGate
+security:
+  - bearerAuth: []
+  - adminSignature: []
+paths:
+  /health:
+    get:
+      summary: Liveness.
+      security: []
+      responses:
+        "200": { description: ok }
+  /readyz:
+    get:
+      summary: Readiness.
+      security: []
+      responses:
+        "200": { description: ready }
+        "503": { description: degraded }
+  /metrics:
+    get:
+      summary: Prometheus metrics (internal only).
+      security: []
+      responses:
+        "200":
+          description: text/plain
+          content: { "text/plain": { schema: { type: string } } }
+
+  /v1/analytics/summary:
+    get:
+      summary: Aggregate KPIs over a time range.
+      parameters:
+        - { name: range, in: query, required: false, schema: { type: string, enum: [1h, 24h, 7d, 30d] } }
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnalyticsSummary" }
+
+  /v1/analytics/timeseries:
+    get:
+      summary: Time-series values for a metric.
+      parameters:
+        - { name: metric, in: query, required: true, schema: { type: string, enum: [revenue_usdc, requests_total, verify_failures_total, rate_limit_drops_total] } }
+        - { name: step,   in: query, required: false, schema: { type: string, enum: [1m, 5m, 1h, 1d] } }
+        - { name: range,  in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: points
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  points:
+                    type: array
+                    items:
+                      type: object
+                      required: [t, v]
+                      properties:
+                        t: { type: string, format: date-time }
+                        v: { type: string }
+
+  /v1/transactions:
+    get:
+      summary: List settled transactions.
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [settled, refunded, reorged, upstream_failed] } }
+        - { name: chain,  in: query, schema: { type: string } }
+        - { name: limit,  in: query, schema: { type: integer, maximum: 200 } }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Transaction" }
+                  next_cursor: { type: string, nullable: true }
+
+  /v1/refunds:
+    post:
+      summary: Request a refund against a settled tx.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tx_hash, reason]
+              properties:
+                tx_hash: { type: string }
+                reason:  { type: string }
+      responses:
+        "201":
+          description: Refund record
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+
+  /v1/refunds/{id}/confirm:
+    post:
+      summary: Confirm refund tx after the operator wallet sent the USDC back.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refund_tx_hash]
+              properties:
+                refund_tx_hash: { type: string }
+      responses:
+        "200": { description: Confirmed }
+
+  /v1/webhooks:
+    post:
+      summary: Subscribe a webhook endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url, events]
+              properties:
+                url:    { type: string, format: uri }
+                events: { type: array, items: { type: string } }
+                secret: { type: string }
+      responses:
+        "201":
+          description: Subscription
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WebhookSubscription" }
+
+  /v1/config/reload:
+    post:
+      summary: Hot-reload paygate.config.yml.
+      responses:
+        "200": { description: Reloaded }
+        "400": { description: Validation failed; proxy keeps running the prior config }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    adminSignature:
+      type: apiKey
+      in: header
+      name: X-PayGate-Admin
+  schemas:
+    AnalyticsSummary:
+      type: object
+      required: [range, revenueUsdc, requests, unique_wallets, top_endpoints]
+      properties:
+        range: { type: string }
+        revenueUsdc: { type: string }
+        requests: { type: integer }
+        unique_wallets: { type: integer }
+        top_endpoints:
+          type: array
+          items:
+            type: object
+            required: [path, requests, revenue_usdc]
+            properties:
+              path: { type: string }
+              requests: { type: integer }
+              revenue_usdc: { type: string }
+    Transaction:
+      type: object
+      required: [id, chain, tx_hash, amount_usdc, status]
+      properties:
+        id: { type: string }
+        chain: { type: string }
+        tx_hash: { type: string }
+        from_wallet: { type: string }
+        to_wallet: { type: string }
+        amount_usdc: { type: string }
+        endpoint: { type: string }
+        status: { type: string }
+        observed_at: { type: string, format: date-time }
+    WebhookSubscription:
+      type: object
+      required: [id, url, events]
+      properties:
+        id: { type: string }
+        url: { type: string }
+        events: { type: array, items: { type: string } }

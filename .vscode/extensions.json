@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "ms-python.mypy-type-checker",
+    "bradlc.vscode-tailwindcss",
+    "JuanBlanco.solidity",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "yoavbls.pretty-ts-errors",
+    "GitHub.vscode-github-actions",
+    "42crunch.vscode-openapi"
+  ]
+}

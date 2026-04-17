@@ -1,0 +1,104 @@
+# Publish the `paygate` PyPI package.
+# Uses PyPI Trusted Publishing (OIDC) + PEP 740 attestations.
+# Triggered by `v*` tags created from the changesets release PR.
+
+name: Publish PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref (tag/sha) to release"
+        required: true
+        default: "main"
+
+concurrency:
+  group: publish-pypi
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/paygate-python
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install hatch
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "hatch>=1.12"
+
+      - name: Clean dist
+        run: rm -rf dist/
+
+      - name: Build sdist + wheel
+        run: hatch build
+
+      - name: Verify built artefacts
+        run: |
+          ls -la dist/
+          python -m pip install twine
+          python -m twine check dist/*
+
+      - name: Upload build artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-dist
+          path: packages/paygate-python/dist/*
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI (Trusted Publisher)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    environment:
+      name: pypi
+      url: https://pypi.org/project/paygate/
+    permissions:
+      contents: read
+      id-token: write # Trusted Publishing (OIDC) + PEP 740 attestation
+      attestations: write
+
+    steps:
+      - name: Download dist artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: pypi-dist
+          path: dist
+
+      - name: Generate build provenance attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: "dist/*"
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          attestations: true
+          skip-existing: false
+          verbose: true

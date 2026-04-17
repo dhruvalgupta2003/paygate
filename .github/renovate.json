@@ -1,0 +1,167 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "security:openssf-scorecard",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":prHourlyLimit4",
+    ":prConcurrentLimit10"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "assigneesFromCodeOwners": true,
+  "reviewersFromCodeOwners": true,
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 4,
+  "rangeStrategy": "replace",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies"],
+    "minimumReleaseAge": null,
+    "schedule": [],
+    "prCreation": "immediate"
+  },
+  "minimumReleaseAge": "24 hours",
+  "configMigration": true,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"],
+    "commitMessageAction": "chore(deps): refresh lockfiles"
+  },
+  "packageRules": [
+    {
+      "description": "Group EVM libraries (viem + ethers + wagmi)",
+      "matchPackageNames": [
+        "viem",
+        "ethers",
+        "@wagmi/core",
+        "@wagmi/connectors",
+        "@wagmi/vue"
+      ],
+      "matchManagers": ["npm"],
+      "groupName": "evm-libs",
+      "commitMessageTopic": "EVM libs"
+    },
+    {
+      "description": "Group Solana libraries",
+      "matchPackageNames": [
+        "@solana/web3.js",
+        "@solana/spl-token",
+        "bs58",
+        "tweetnacl"
+      ],
+      "matchManagers": ["npm"],
+      "groupName": "solana-libs",
+      "commitMessageTopic": "Solana libs"
+    },
+    {
+      "description": "Group Python Solana libraries",
+      "matchPackageNames": ["solders", "solana"],
+      "matchManagers": ["pep621", "pip_requirements"],
+      "groupName": "python-solana-libs",
+      "commitMessageTopic": "Python Solana libs"
+    },
+    {
+      "description": "Group web3.py + eth-account",
+      "matchPackageNames": ["web3", "eth-account", "eth-utils", "eth-typing"],
+      "matchManagers": ["pep621", "pip_requirements"],
+      "groupName": "web3-py",
+      "commitMessageTopic": "web3.py libs"
+    },
+    {
+      "description": "Group TanStack packages",
+      "matchPackageNames": ["/^@tanstack//"],
+      "matchManagers": ["npm"],
+      "groupName": "tanstack",
+      "commitMessageTopic": "TanStack"
+    },
+    {
+      "description": "Pin verification-critical libs — major updates require manual review",
+      "matchPackageNames": [
+        "viem",
+        "ethers",
+        "@solana/web3.js",
+        "@solana/spl-token",
+        "tweetnacl",
+        "bs58",
+        "web3",
+        "eth-account",
+        "solders",
+        "solana"
+      ],
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "dependencyDashboardApproval": true,
+      "labels": ["security", "verification-critical", "needs-review"],
+      "reviewers": ["team:security"],
+      "minimumReleaseAge": "7 days",
+      "prPriority": 10
+    },
+    {
+      "description": "Auto-merge dev dependency patch updates after 24h cool-off",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true,
+      "minimumReleaseAge": "24 hours"
+    },
+    {
+      "description": "Never auto-merge major upgrades",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "dependencyDashboardApproval": true,
+      "labels": ["dependencies", "major"]
+    },
+    {
+      "description": "No cooling for security updates",
+      "matchCategories": ["security"],
+      "minimumReleaseAge": null,
+      "labels": ["security", "dependencies"]
+    },
+    {
+      "description": "GitHub Actions — always pinned to full SHA",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "automerge": false,
+      "labels": ["dependencies", "github-actions"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Dockerfile base image — pin by digest",
+      "matchManagers": ["dockerfile"],
+      "pinDigests": true,
+      "automerge": false,
+      "labels": ["dependencies", "docker"]
+    },
+    {
+      "description": "Skip pre-release versions for pinned crit libs",
+      "matchPackageNames": ["viem", "ethers", "@solana/web3.js"],
+      "ignoreUnstable": true,
+      "allowedVersions": "!/-(alpha|beta|rc|canary|next|nightly|preview)/"
+    },
+    {
+      "description": "Group pnpm dev tooling",
+      "matchPackageNames": [
+        "eslint",
+        "prettier",
+        "typescript",
+        "vitest",
+        "@vitest/coverage-v8",
+        "tsup",
+        "turbo",
+        "rimraf"
+      ],
+      "groupName": "dev-tooling",
+      "commitMessageTopic": "dev tooling"
+    }
+  ],
+  "postUpdateOptions": ["pnpmDedupe"],
+  "commitMessagePrefix": "chore(deps):",
+  "commitBody": "Automated dependency update via Renovate.",
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
+  "gitAuthor": "renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>"
+}

@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './tokens.css';
+@import './typography.css';
+@import './animations.css';
+
+/* ---------------------------------------------------------------- */
+/* Base resets                                                        */
+/* ---------------------------------------------------------------- */
+
+@layer base {
+  html {
+    font-family: 'Inter', 'InterVariable', system-ui, sans-serif;
+    font-feature-settings: 'cv11', 'ss03', 'cv02';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    color-scheme: light dark;
+  }
+
+  body {
+    background: var(--pg-canvas);
+    color: var(--pg-ink);
+  }
+
+  /* Intentional focus ring: 1px outline + 4px offset tint.
+     Not browser default — tuned to match PayGate indigo. */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--pg-indigo-500);
+    outline-offset: 2px;
+    border-radius: var(--pg-radius-sm);
+  }
+
+  ::selection {
+    background: rgba(79, 70, 229, 0.2);
+    color: var(--pg-ink);
+  }
+
+  .dark ::selection {
+    background: rgba(124, 130, 247, 0.35);
+    color: var(--pg-ink);
+  }
+
+  /* Scrollbars (webkit) kept quiet. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(11, 10, 26, 0.12);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(11, 10, 26, 0.22);
+    background-clip: content-box;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    background-clip: content-box;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Component primitives                                               */
+/* ---------------------------------------------------------------- */
+
+@layer components {
+  .pg-card {
+    position: relative;
+    background: var(--pg-canvas-raised);
+    border: 1px solid var(--pg-line);
+    border-radius: var(--pg-radius-lg);
+    transition:
+      border-color var(--pg-duration) var(--pg-ease),
+      box-shadow var(--pg-duration) var(--pg-ease),
+      transform var(--pg-duration) var(--pg-ease);
+  }
+
+  .pg-card--interactive:hover {
+    border-color: var(--pg-line-brand);
+    box-shadow:
+      0 0 0 1px var(--pg-line-brand),
+      0 12px 36px -18px rgba(79, 70, 229, 0.2);
+  }
+
+  .pg-hairline {
+    border-bottom: 1px solid var(--pg-line);
+  }
+
+  .pg-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+    border: 1px solid transparent;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .pg-chip--up {
+    background: rgba(16, 185, 129, 0.08);
+    color: #0f7a5c;
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .pg-chip--down {
+    background: rgba(239, 68, 68, 0.08);
+    color: #b91c1c;
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .pg-chip--neutral {
+    background: rgba(11, 10, 26, 0.05);
+    color: var(--pg-ink-muted);
+    border-color: var(--pg-line);
+  }
+
+  .dark .pg-chip--up {
+    color: #5ee3b5;
+  }
+
+  .dark .pg-chip--down {
+    color: #fca5a5;
+  }
+
+  .dark .pg-chip--neutral {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--pg-ink-2);
+  }
+
+  /* soft gradient flow background. */
+  .pg-flow-bg {
+    background: linear-gradient(
+      90deg,
+      rgba(34, 211, 238, 0.14) 0%,
+      rgba(16, 185, 129, 0.14) 100%
+    );
+  }
+
+  /* subtle bento ornament: top accent line in flow gradient */
+  .pg-accent-top::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(79, 70, 229, 0.3) 30%, rgba(109, 40, 217, 0.3) 70%, transparent 100%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Utilities                                                          */
+/* ---------------------------------------------------------------- */
+
+@layer utilities {
+  .pg-scroll-shadow-top::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 16px;
+    pointer-events: none;
+    z-index: 2;
+    background: linear-gradient(to bottom, var(--pg-canvas) 0%, transparent 100%);
+  }
+
+  .pg-mask-fade-right {
+    mask-image: linear-gradient(to right, black 88%, transparent 100%);
+  }
+
+  .pg-grid-bg {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(11, 10, 26, 0.06) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
+
+  .dark .pg-grid-bg {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 0
+    );
+  }
+}

@@ -1,0 +1,62 @@
+# PayGate code ownership.
+#
+# Lines use `<pattern> <owner1> <owner2> ...`. The last matching pattern wins.
+# See AGENTS.md § 1 rule 3 and SECURITY.md — verification paths require a
+# second reviewer from @paygate/security.
+
+# ------------------------------------------------------------------
+# Default owners — core team reviews everything
+# ------------------------------------------------------------------
+*                                                 @paygate/core
+
+# ------------------------------------------------------------------
+# Verification + chain-specific logic — security review required
+# ------------------------------------------------------------------
+/packages/paygate-node/src/chains/                @paygate/security @paygate/core
+/packages/paygate-node/src/verification/          @paygate/security @paygate/core
+/packages/paygate-python/paygate/chains/          @paygate/security @paygate/core
+/packages/paygate-python/paygate/verification/    @paygate/security @paygate/core
+
+# ------------------------------------------------------------------
+# Smart contracts
+# ------------------------------------------------------------------
+/contracts/                                       @paygate/security @paygate/contracts
+/contracts/base/                                  @paygate/security @paygate/contracts
+/contracts/solana/                                @paygate/security @paygate/contracts
+
+# ------------------------------------------------------------------
+# Security-sensitive docs
+# ------------------------------------------------------------------
+/SECURITY.md                                      @paygate/security
+/AGENTS.md                                        @paygate/core @paygate/security
+/docs/security.md                                 @paygate/security
+/docs/compliance.md                               @paygate/security
+
+# ------------------------------------------------------------------
+# Release + supply-chain workflows
+# ------------------------------------------------------------------
+/.github/workflows/publish-npm.yml                @paygate/core @paygate/security
+/.github/workflows/publish-pypi.yml               @paygate/core @paygate/security
+/.github/workflows/publish-docker.yml             @paygate/core @paygate/security
+/.github/workflows/security-scan.yml              @paygate/security
+/.github/workflows/codeql.yml                     @paygate/security
+/.github/workflows/sbom.yml                       @paygate/security @paygate/core
+/.github/dependabot.yml                           @paygate/security @paygate/core
+/.github/renovate.json                            @paygate/security @paygate/core
+
+# ------------------------------------------------------------------
+# Apps
+# ------------------------------------------------------------------
+/apps/api/                                        @paygate/backend
+/apps/dashboard/                                  @paygate/frontend
+
+# ------------------------------------------------------------------
+# SDKs (non-verification paths)
+# ------------------------------------------------------------------
+/packages/paygate-node/                           @paygate/core @paygate/node
+/packages/paygate-python/                         @paygate/core @paygate/python
+
+# ------------------------------------------------------------------
+# Docs site
+# ------------------------------------------------------------------
+/docs/                                            @paygate/docs @paygate/core

@@ -1,0 +1,94 @@
+/*
+ * PayGate design tokens.
+ *
+ * The palette, scale, and motion primitives referenced throughout the dashboard.
+ * Source of truth: src/lib/theme.ts. Tailwind config mirrors these values.
+ */
+
+:root {
+  /* brand */
+  --pg-indigo-50: #eef1ff;
+  --pg-indigo-100: #e0e5ff;
+  --pg-indigo-200: #c3cdff;
+  --pg-indigo-300: #9cadff;
+  --pg-indigo-400: #7486f7;
+  --pg-indigo-500: #4f46e5;
+  --pg-indigo-600: #3f37c6;
+  --pg-indigo-700: #312e81;
+  --pg-indigo-900: #1e1b4b;
+
+  --pg-violet-500: #8b5cf6;
+  --pg-violet-600: #6d28d9;
+  --pg-violet-700: #5b21b6;
+
+  --pg-flow-cyan: #22d3ee;
+  --pg-flow-mint: #10b981;
+
+  /* ink */
+  --pg-ink: #0b0a1a;
+  --pg-ink-2: #1a1830;
+  --pg-ink-3: #2c2946;
+  --pg-ink-muted: #6b6b8a;
+  --pg-ink-soft: #8a8aa8;
+
+  /* paper */
+  --pg-paper: #f8fafc;
+  --pg-paper-2: #edeaf7;
+  --pg-paper-3: #e2def2;
+
+  /* canvas (light mode) */
+  --pg-canvas: #fdfdff;
+  --pg-canvas-raised: #ffffff;
+  --pg-canvas-sunken: #f4f5fb;
+
+  /* semantic */
+  --pg-success: #10b981;
+  --pg-warn: #f59e0b;
+  --pg-danger: #ef4444;
+  --pg-info: #3b82f6;
+
+  /* hairlines */
+  --pg-line: rgba(11, 10, 26, 0.08);
+  --pg-line-strong: rgba(11, 10, 26, 0.14);
+  --pg-line-brand: rgba(79, 70, 229, 0.2);
+
+  /* motion */
+  --pg-duration-fast: 120ms;
+  --pg-duration: 220ms;
+  --pg-duration-slow: 420ms;
+  --pg-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* rhythm */
+  --pg-radius-xs: 4px;
+  --pg-radius-sm: 6px;
+  --pg-radius-md: 10px;
+  --pg-radius-lg: 14px;
+  --pg-radius-xl: 20px;
+  --pg-radius-2xl: 28px;
+
+  /* layout */
+  --pg-nav-width: 248px;
+  --pg-nav-width-collapsed: 72px;
+  --pg-topbar-height: 60px;
+  --pg-content-max: 1680px;
+}
+
+/* Dark mode overrides. Activated by `.dark` on <html>. */
+.dark {
+  --pg-canvas: #0b0a1a;
+  --pg-canvas-raised: #12112a;
+  --pg-canvas-sunken: #08071a;
+  --pg-paper: #12112a;
+  --pg-paper-2: #1a1830;
+  --pg-paper-3: #2c2946;
+
+  --pg-ink: #f0eefa;
+  --pg-ink-2: #c6c2e2;
+  --pg-ink-3: #9b98bf;
+  --pg-ink-muted: #7d7aa8;
+  --pg-ink-soft: #555275;
+
+  --pg-line: rgba(255, 255, 255, 0.08);
+  --pg-line-strong: rgba(255, 255, 255, 0.16);
+  --pg-line-brand: rgba(124, 130, 247, 0.35);
+}

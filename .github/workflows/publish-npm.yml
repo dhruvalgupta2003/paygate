@@ -1,0 +1,100 @@
+# Publish the npm package @paygate/node via changesets.
+# Either opens a "Version Packages" PR or publishes after it merges.
+# Uses OIDC provenance (https://docs.npmjs.com/generating-provenance-statements).
+
+name: Publish npm
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "9.12.0"
+  NODE_VERSION: "20.18.0"
+
+jobs:
+  release:
+    name: Changesets release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write # required for npm provenance
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+          always-auth: true
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all publishable packages
+        run: pnpm build --filter '@paygate/*'
+
+      - name: Run tests
+        run: pnpm test --filter '@paygate/*'
+
+      - name: Configure npm for provenance
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          echo "provenance=true" >> ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create release PR or publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm run version-packages
+          publish: pnpm run release
+          commit: "chore(release): version packages"
+          title: "chore(release): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+
+      - name: Verify published version
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          chmod +x scripts/release/verify-release.sh
+          ./scripts/release/verify-release.sh
+
+      - name: Upload changeset status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: changesets-outputs
+          path: |
+            .changeset/
+          if-no-files-found: ignore
+          retention-days: 14

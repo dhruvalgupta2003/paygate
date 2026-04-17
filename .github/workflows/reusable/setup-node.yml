@@ -1,0 +1,73 @@
+# Reusable composite: checkout + corepack + pnpm install + cache.
+# Call from another workflow via:
+#   uses: ./.github/workflows/reusable/setup-node.yml
+# or embed these steps inline.
+
+name: Reusable · Setup Node + pnpm
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: Node.js version
+        required: false
+        type: string
+        default: "20.18.0"
+      pnpm-version:
+        description: pnpm version
+        required: false
+        type: string
+        default: "9.12.0"
+      install:
+        description: Run `pnpm install --frozen-lockfile`
+        required: false
+        type: boolean
+        default: true
+      working-directory:
+        description: Working directory
+        required: false
+        type: string
+        default: "."
+
+jobs:
+  setup:
+    name: Setup Node + pnpm
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@${{ inputs.pnpm-version }} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: pnpm
+
+      - name: Resolve pnpm store path
+        id: pnpm-cache
+        shell: bash
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.path }}
+          key: ${{ runner.os }}-pnpm-${{ inputs.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-${{ inputs.node-version }}-
+
+      - name: Install dependencies
+        if: inputs.install
+        working-directory: ${{ inputs.working-directory }}
+        run: pnpm install --frozen-lockfile

@@ -1,0 +1,90 @@
+# PayGate local development stack.
+# Usage: `docker compose up -d`
+# Services: postgres, redis, paygate-proxy, paygate-api, paygate-dashboard.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: paygate-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: paygate
+      POSTGRES_PASSWORD: paygate
+      POSTGRES_DB: paygate
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./apps/api/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paygate"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: paygate-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  proxy:
+    build:
+      context: .
+      dockerfile: packages/paygate-node/Dockerfile
+    container_name: paygate-proxy
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "4021:4021"
+      - "9464:9464"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./paygate.config.yml:/app/paygate.config.yml:ro
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: paygate-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 4020
+    ports:
+      - "4020:4020"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: paygate-dashboard
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:4020
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,70 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide the following details so
+        we can reproduce and fix it quickly.
+  - type: input
+    id: version
+    attributes:
+      label: PayGate version
+      placeholder: "@paygate/node@0.1.3 or paygate-py@0.1.3"
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options:
+        - Node.js
+        - Python
+        - Docker
+        - Dashboard
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: chain
+    attributes:
+      label: Chain (if payment related)
+      options:
+        - Base mainnet
+        - Base Sepolia
+        - Solana mainnet
+        - Solana devnet
+        - N/A
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or stack trace
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I've confirmed this isn't a known issue in [docs/troubleshooting.md](../../docs/troubleshooting.md).
+          required: true
+        - label: I'm not posting secrets, private keys, or signed payment authorizations.
+          required: true

@@ -1,0 +1,109 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+*.egg
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# TypeScript
+*.tsbuildinfo
+.turbo/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.vite/
+out/
+dist/
+lib/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+!.env.example
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json.example
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+junit.xml
+playwright-report/
+test-results/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Foundry / solidity
+contracts/base/out/
+contracts/base/cache/
+contracts/base/broadcast/**/*.json
+!contracts/base/broadcast/**/run-latest.json
+contracts/base/lib/
+
+# Secrets (defense in depth)
+*.pem
+*.key
+*-private.json
+credentials.json
+secrets/
+
+# Dashboard build artifacts
+apps/dashboard/dist/
+apps/dashboard/.vite/
+
+# DB
+*.sqlite
+*.sqlite3
+*.db
+pgdata/

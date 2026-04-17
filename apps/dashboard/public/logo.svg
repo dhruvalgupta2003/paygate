@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PayGate primary mark.
+  Concept: two vertical posts form a "gate"; a chevron flows through them;
+  an inner circle reads as a settlement receipt.  The glyph works down to 16px.
+  Construction grid: 512×512, 32px baseline unit.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PayGate">
+  <title>PayGate</title>
+  <defs>
+    <linearGradient id="pg-body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="55%" stop-color="#6D28D9"/>
+      <stop offset="100%" stop-color="#312E81"/>
+    </linearGradient>
+    <linearGradient id="pg-flow" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+    <radialGradient id="pg-coin" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.75"/>
+    </radialGradient>
+    <filter id="pg-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.25"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- rounded square body -->
+  <rect x="16" y="16" width="480" height="480" rx="96" ry="96" fill="url(#pg-body)"/>
+
+  <!-- left gate post -->
+  <rect x="112" y="128" width="56" height="256" rx="18" ry="18" fill="#F8FAFC"/>
+  <!-- right gate post -->
+  <rect x="344" y="128" width="56" height="256" rx="18" ry="18" fill="#F8FAFC"/>
+
+  <!-- settlement coin sitting centered between the posts -->
+  <circle cx="256" cy="256" r="74" fill="url(#pg-coin)"/>
+  <circle cx="256" cy="256" r="74" fill="none" stroke="#EDE9FE" stroke-width="2" stroke-opacity="0.6"/>
+
+  <!-- chevron "flow" cutting through the gate, representing a paid request -->
+  <path d="M168 256 L228 256 L212 220 L260 256 L212 292 L228 256"
+        fill="none" stroke="url(#pg-flow)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" filter="url(#pg-shadow)"/>
+
+  <!-- subtle "402" accent microtext, only visible large -->
+  <text x="256" y="432" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" font-weight="600" fill="#E0E7FF" letter-spacing="6">402</text>
+</svg>

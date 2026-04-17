@@ -1,0 +1,21 @@
+* text=auto eol=lf
+
+# Lockfiles: do not merge
+pnpm-lock.yaml   merge=ours linguist-generated=true
+poetry.lock      merge=ours linguist-generated=true
+uv.lock          merge=ours linguist-generated=true
+
+# Generated
+**/dist/**       linguist-generated=true
+**/lib/**        linguist-generated=true
+**/*.tsbuildinfo linguist-generated=true
+**/openapi.yaml  linguist-generated=true
+
+# Binary-ish
+*.ico            binary
+*.png            binary
+*.jpg            binary
+*.gif            binary
+*.pdf            binary
+*.mp4            binary
+*.zip            binary

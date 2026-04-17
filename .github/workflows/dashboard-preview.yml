@@ -1,0 +1,101 @@
+# Deploy a preview of apps/dashboard on every PR.
+# Placeholder — uses Netlify; swap to Vercel by replacing the deploy step.
+
+name: Dashboard Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "apps/dashboard/**"
+      - "packages/paygate-node/**" # dashboard consumes types
+      - ".github/workflows/dashboard-preview.yml"
+
+concurrency:
+  group: dashboard-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "9.12.0"
+  NODE_VERSION: "20.18.0"
+
+jobs:
+  preview:
+    name: Deploy preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      deployments: write
+
+    environment:
+      name: dashboard-preview
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@${PNPM_VERSION} --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build dashboard
+        working-directory: apps/dashboard
+        env:
+          VITE_API_URL: ${{ vars.PREVIEW_API_URL || 'https://preview-api.paygate.dev' }}
+          VITE_PREVIEW_BANNER: "true"
+        run: pnpm build
+
+      - name: Install Netlify CLI
+        run: pnpm dlx netlify-cli@latest --version
+
+      - name: Deploy preview to Netlify
+        id: deploy
+        if: ${{ env.NETLIFY_AUTH_TOKEN != '' && env.NETLIFY_SITE_ID != '' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          set -euo pipefail
+          output=$(pnpm dlx netlify-cli@latest deploy \
+            --dir apps/dashboard/dist \
+            --alias pr-${{ github.event.pull_request.number }} \
+            --message "PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}" \
+            --json)
+          url=$(echo "$output" | jq -r '.deploy_url')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Skip deploy (no Netlify secrets configured)
+        if: ${{ env.NETLIFY_AUTH_TOKEN == '' || env.NETLIFY_SITE_ID == '' }}
+        run: |
+          echo "NETLIFY_AUTH_TOKEN / NETLIFY_SITE_ID not set — skipping deploy."
+
+      - name: Comment preview URL on PR
+        if: steps.deploy.outputs.url != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: dashboard-preview
+          message: |
+            ### Dashboard preview ready
+
+            - URL: ${{ steps.deploy.outputs.url }}
+            - Commit: `${{ github.sha }}`
+            - Updated: `${{ github.event.pull_request.updated_at }}`
+
+            Note: this is a preview build that points at the staging API.
