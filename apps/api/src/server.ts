@@ -1,12 +1,11 @@
 import { Hono } from 'hono';
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { loadEnv } from './config/env.js';
-import { errorMiddleware } from './middleware/error.js';
+import { globalErrorHandler, notFoundHandler } from './middleware/error.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { securityHeadersMiddleware } from './middleware/security-headers.js';
 import { corsMiddleware } from './middleware/cors.js';
 import { loggingMiddleware } from './middleware/logging.js';
-import { adminRateLimitMiddleware } from './middleware/rate-limit.js';
+import { rateLimitMiddleware } from './middleware/rate-limit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { analyticsRoutes } from './routes/analytics.js';
@@ -20,23 +19,31 @@ import { evidenceRoutes } from './routes/evidence.js';
 import { complianceRoutes } from './routes/compliance.js';
 import { auditRoutes } from './routes/audit.js';
 
-export function createApp(): Hono {
-  const env = loadEnv();
+export interface CreateAppOptions {
+  /** When true, skip auth middleware on the admin surface.  Localhost-only. */
+  readonly unauthenticated?: boolean;
+}
+
+export function createApp(options: CreateAppOptions = {}): Hono {
   const app = new OpenAPIHono();
 
   app.use('*', requestIdMiddleware());
   app.use('*', loggingMiddleware());
   app.use('*', securityHeadersMiddleware());
-  app.use('*', corsMiddleware(env));
-  app.onError(errorMiddleware);
+  app.use('*', corsMiddleware());
+  app.onError(globalErrorHandler);
+  app.notFound(notFoundHandler);
 
   // Public health + metrics — no auth.
   app.route('/', healthRoutes);
 
-  // Admin surface — authenticated + rate-limited.
+  // Admin surface.
   const admin = new OpenAPIHono();
-  admin.use('*', authMiddleware(env));
-  admin.use('*', adminRateLimitMiddleware(env));
+  if (!options.unauthenticated) {
+    admin.use('*', authMiddleware());
+  }
+  admin.use('*', rateLimitMiddleware({ limit: 60, windowSeconds: 60 }));
+
   admin.route('/analytics', analyticsRoutes);
   admin.route('/transactions', transactionsRoutes);
   admin.route('/refunds', refundsRoutes);
@@ -50,7 +57,6 @@ export function createApp(): Hono {
 
   app.route('/_paygate/v1', admin);
 
-  // OpenAPI spec + Swagger UI.
   app.doc('/_paygate/v1/openapi.json', {
     openapi: '3.1.0',
     info: { title: 'PayGate Admin API', version: '0.1.0' },

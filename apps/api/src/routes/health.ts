@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
+import { sql } from 'drizzle-orm';
 import { collectMetricsText } from '../lib/metrics.js';
-import { db } from '../db/index.js';
+import { getDb } from '../db/index.js';
 
 export const healthRoutes = new Hono()
   .get('/livez', (c) => c.text('ok'))
   .get('/readyz', async (c) => {
     try {
-      await db.execute(`SELECT 1`);
+      await getDb().execute(sql`SELECT 1`);
       return c.text('ok');
     } catch {
       return c.text('degraded', 503);

@@ -19,20 +19,24 @@ declare module '@tanstack/react-router' {
 }
 
 async function bootstrap() {
-  // Start MSW if available, but never let its failure block the UI.
-  if (import.meta.env.DEV) {
+  // MSW mocks only fire when VITE_USE_MSW=true.  Once the real API is up,
+  // set VITE_USE_MSW=false (or unset it) so requests hit localhost:4020.
+  const useMsw = import.meta.env['VITE_USE_MSW'] === 'true';
+  if (useMsw && import.meta.env.DEV) {
     try {
       const { worker } = await import('./mocks/browser');
       await worker.start({ onUnhandledRequest: 'bypass' });
       console.info('[paygate] MSW mocking enabled');
     } catch (err) {
       console.warn(
-        '[paygate] MSW could not start (continuing without mocks). ' +
-          'Run `pnpm --filter @paygate/dashboard exec msw init public/ --save` ' +
-          'to generate mockServiceWorker.js.',
+        '[paygate] MSW could not start (continuing without mocks).',
         err,
       );
     }
+  } else {
+    console.info(
+      `[paygate] live API mode (VITE_API_URL=${import.meta.env['VITE_API_URL'] ?? 'http://localhost:4020'})`,
+    );
   }
 
   const el = document.getElementById('root');

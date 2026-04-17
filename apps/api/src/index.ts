@@ -1,12 +1,16 @@
 import { serve } from '@hono/node-server';
 import { loadEnv } from './config/env.js';
-import { createLogger } from './lib/logger.js';
+import { getLogger } from './lib/logger.js';
 import { createApp } from './server.js';
 
 async function main(): Promise<void> {
   const env = loadEnv();
-  const log = createLogger();
-  const app = createApp();
+  const log = getLogger();
+  // Non-production defaults to unauthenticated so the local dashboard can
+  // hit the API without SIWE/JWT.  Flip PAYGATE_API_AUTH=on to force auth.
+  const unauthenticated =
+    env.NODE_ENV !== 'production' && process.env['PAYGATE_API_AUTH'] !== 'on';
+  const app = createApp({ unauthenticated });
 
   const server = serve(
     { fetch: app.fetch, hostname: env.HOST, port: env.PORT },

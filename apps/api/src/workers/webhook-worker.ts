@@ -1,4 +1,4 @@
-import { createLogger } from '../lib/logger.js';
+import { childLogger } from '../lib/logger.js';
 
 /**
  * Background worker that drains the webhook_deliveries queue.  Kept minimal
@@ -8,7 +8,7 @@ import { createLogger } from '../lib/logger.js';
 const FIB_DELAY_SECONDS = [1, 2, 5, 15, 60, 300, 1800, 3600, 7200, 14_400, 28_800, 57_600];
 
 export async function runWebhookWorker(): Promise<void> {
-  const log = createLogger().child({ worker: 'webhook-worker' });
+  const log = childLogger({ worker: 'webhook-worker' });
   log.info({ schedule: FIB_DELAY_SECONDS }, 'webhook worker started');
 
   const tick = async () => {
