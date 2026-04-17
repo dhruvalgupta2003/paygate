@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.9
 
 # ----- build stage --------------------------------------------------------
-FROM python:3.12-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 WORKDIR /build
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -22,7 +22,7 @@ RUN pip install --upgrade pip \
     && pip install .
 
 # ----- runtime stage ------------------------------------------------------
-FROM python:3.12-slim-bookworm AS runtime
+FROM python:3.14-slim-bookworm AS runtime
 
 RUN groupadd --system --gid 10001 paygate \
     && useradd --system --uid 10001 --gid 10001 --no-create-home paygate
