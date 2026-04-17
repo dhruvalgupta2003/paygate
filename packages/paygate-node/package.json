@@ -102,7 +102,7 @@
     "@types/node": "^22.9.0",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
-    "@vitest/coverage-v8": "^2.1.4",
+    "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^9.14.0",
     "express": "^4.21.1",
     "fastify": "^5.1.0",
