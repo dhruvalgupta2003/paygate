@@ -352,10 +352,16 @@ export class BaseAdapter implements ChainAdapter {
       };
     }
 
-    // Confirmation depth.  A receipt that we just got obviously includes the
-    // tx's own block, so 0 confirmations = "visible in the canonical chain".
-    // A tx block number later than `latest` (can happen on load-balanced
-    // public RPCs when different nodes are a block apart) clamps to 0.
+    // Confirmation depth.
+    //
+    // Convention (matches viem, ethers, bitcoin-style counting): "N
+    // confirmations" means the tx's own block plus (N-1) blocks on top.
+    // So "1 confirmation" = "the tx is included in the canonical chain"
+    // — which is the moment the receipt exists at all.
+    //
+    // `latest - receipt.blockNumber` can be negative on load-balanced
+    // public RPCs (one replica already saw the block, another hasn't);
+    // clamp to 0.
     let latest: bigint;
     try {
       latest = await this.client.getBlockNumber();
@@ -367,7 +373,8 @@ export class BaseAdapter implements ChainAdapter {
         retryable: true,
       };
     }
-    const confirmations = Math.max(0, Number(latest - receipt.blockNumber));
+    const blocksAtopTx = Math.max(0, Number(latest - receipt.blockNumber));
+    const confirmations = blocksAtopTx + 1;
     if (confirmations < this.confirmations) {
       return {
         ok: false,
