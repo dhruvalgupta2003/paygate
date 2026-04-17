@@ -22,13 +22,7 @@ If you already have a wallet, skip to "Step 4". Otherwise:
 ### Step 1 — generate a wallet
 
 ```bash
-node -e "
-const { generatePrivateKey, privateKeyToAccount } = require('viem/accounts');
-const pk = generatePrivateKey();
-const acct = privateKeyToAccount(pk);
-console.log('Address:    ', acct.address);
-console.log('Private key:', pk);
-"
+node packages/paygate-node/dist/cli.js keys generate-evm-key
 ```
 
 Save both. The private key is a secret — only paste it into your `.env`,

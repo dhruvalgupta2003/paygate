@@ -61,7 +61,7 @@ program
 program
   .command('keys')
   .description('Key utilities.')
-  .argument('<action>', 'generate-webhook-secret | generate-admin-keypair')
+  .argument('<action>', 'generate-webhook-secret | generate-admin-keypair | generate-evm-key')
   .action(async (action: string) => {
     await runGenerateWebhookSecret(action);
   });
