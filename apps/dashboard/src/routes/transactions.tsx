@@ -71,7 +71,7 @@ function TransactionsRoute() {
                 <td className="px-4 py-3 text-ink-500">{relativeTime(t.observed_at)}</td>
                 <td className="px-4 py-3">{t.chain}</td>
                 <td className="px-4 py-3"><code className="text-xs">{t.endpoint}</code></td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatUsdc(t.amount_usdc)}</td>
+                <td className="px-4 py-3 text-right tabular-nums">{formatUsdc(t.amount_usdc_micros)}</td>
                 <td className="px-4 py-3 font-mono text-xs">{formatWallet(t.from_wallet)}</td>
                 <td className="px-4 py-3">
                   <span

@@ -6,7 +6,7 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-ink-200/60 bg-cloud/70 px-8 py-3 backdrop-blur dark:border-ink-800/60 dark:bg-ink-900/70">
       <div className="flex items-center gap-3 text-sm text-ink-500">
-        <StatusDot tone="ok" />
+        <StatusDot status="ok" withLabel={false} />
         <span className="font-medium text-ink-700 dark:text-ink-200">production</span>
         <span className="text-ink-400">·</span>
         <span>{import.meta.env.VITE_API_URL ?? 'http://localhost:4020'}</span>

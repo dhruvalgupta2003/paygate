@@ -10,6 +10,13 @@ export const Route = createFileRoute('/')({
   component: Overview,
 });
 
+function trendPct(curr: number | bigint, prev: number | bigint): number {
+  const c = Number(curr);
+  const p = Number(prev);
+  if (p === 0) return 0;
+  return ((c - p) / p) * 100;
+}
+
 function Overview() {
   const summary = useAnalyticsSummary('24h');
   const revenue = useAnalyticsTimeseries('revenue_usdc', '1h', '24h');
@@ -19,6 +26,8 @@ function Overview() {
     base: Number(p.v),
     solana: Number(p.v) * 0.4,
   }));
+
+  const s = summary.data;
 
   return (
     <>
@@ -30,8 +39,8 @@ function Overview() {
         <BentoCell span="sm">
           <KPICard
             label="Revenue 24h"
-            value={summary.data ? formatUsdc(summary.data.revenueUsdc) : '—'}
-            trend={12.4}
+            value={s ? formatUsdc(s.revenue_usdc_micros) : '—'}
+            trend={s ? trendPct(BigInt(s.revenue_usdc_micros), BigInt(s.previous_revenue_usdc_micros)) : 0}
             spark={[2, 3, 2, 4, 6, 5, 8, 10, 9, 12]}
             tone="indigo"
           />
@@ -39,8 +48,8 @@ function Overview() {
         <BentoCell span="sm">
           <KPICard
             label="Requests"
-            value={summary.data ? summary.data.requests.toLocaleString() : '—'}
-            trend={6.1}
+            value={s ? s.requests.toLocaleString() : '—'}
+            trend={s ? trendPct(s.requests, s.previous_requests) : 0}
             spark={[20, 30, 40, 55, 38, 47, 62, 70, 60, 80]}
             tone="emerald"
           />
@@ -48,8 +57,8 @@ function Overview() {
         <BentoCell span="sm">
           <KPICard
             label="Active wallets"
-            value={summary.data ? summary.data.unique_wallets.toLocaleString() : '—'}
-            trend={2.3}
+            value={s ? s.active_wallets.toLocaleString() : '—'}
+            trend={s ? trendPct(s.active_wallets, s.previous_active_wallets) : 0}
             spark={[4, 5, 5, 6, 7, 7, 8, 9, 9, 10]}
             tone="amber"
           />
@@ -57,8 +66,8 @@ function Overview() {
         <BentoCell span="sm">
           <KPICard
             label="Verify p99"
-            value="218 ms"
-            trend={-8.2}
+            value={s ? `${Math.round(s.verify_p99_ms)} ms` : '—'}
+            trend={s ? trendPct(s.verify_p99_ms, s.previous_verify_p99_ms) : 0}
             spark={[300, 280, 260, 250, 230, 230, 220, 218, 215, 218]}
             tone="rose"
           />
@@ -87,18 +96,22 @@ function Overview() {
             Top endpoints
           </h2>
           <ul className="space-y-3 text-sm">
-            {(summary.data?.top_endpoints ?? [
-              { path: '/api/v1/weather/*', requests: 4211, revenue_usdc: '4.211000' },
-              { path: '/api/v1/premium/**', requests: 882, revenue_usdc: '44.100000' },
-              { path: '/api/v1/search', requests: 501, revenue_usdc: '1.002000' },
-            ]).slice(0, 5).map((e) => (
-              <li key={e.path} className="flex items-center justify-between rounded-lg bg-ink-100/60 px-3 py-2 dark:bg-ink-800/40">
+            {(s?.top_endpoints ?? []).slice(0, 5).map((e) => (
+              <li
+                key={e.path}
+                className="flex items-center justify-between rounded-lg bg-ink-100/60 px-3 py-2 dark:bg-ink-800/40"
+              >
                 <code className="truncate text-[12px]">{e.path}</code>
                 <span className="text-xs tabular-nums text-ink-700 dark:text-ink-200">
-                  {formatUsdc(e.revenue_usdc)}
+                  {formatUsdc(e.revenue_usdc_micros)}
                 </span>
               </li>
             ))}
+            {(s?.top_endpoints?.length ?? 0) === 0 ? (
+              <li className="rounded-lg border border-dashed border-ink-200 p-4 text-center text-xs text-ink-500 dark:border-ink-700">
+                No endpoint data yet.
+              </li>
+            ) : null}
           </ul>
         </BentoCell>
       </BentoGrid>

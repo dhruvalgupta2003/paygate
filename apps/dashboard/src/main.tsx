@@ -19,12 +19,25 @@ declare module '@tanstack/react-router' {
 }
 
 async function bootstrap() {
+  // Start MSW if available, but never let its failure block the UI.
   if (import.meta.env.DEV) {
-    const { worker } = await import('./mocks/browser');
-    await worker.start({ onUnhandledRequest: 'bypass' });
+    try {
+      const { worker } = await import('./mocks/browser');
+      await worker.start({ onUnhandledRequest: 'bypass' });
+      console.info('[paygate] MSW mocking enabled');
+    } catch (err) {
+      console.warn(
+        '[paygate] MSW could not start (continuing without mocks). ' +
+          'Run `pnpm --filter @paygate/dashboard exec msw init public/ --save` ' +
+          'to generate mockServiceWorker.js.',
+        err,
+      );
+    }
   }
+
   const el = document.getElementById('root');
   if (!el) throw new Error('#root missing');
+
   ReactDOM.createRoot(el).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>

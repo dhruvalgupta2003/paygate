@@ -29,11 +29,21 @@ function AgentsRoute() {
           <tbody>
             {(agents.data ?? []).map((a) => (
               <tr key={a.wallet} className="border-t border-ink-100 dark:border-ink-800/60">
-                <td className="px-4 py-3 font-mono text-xs">{formatWallet(a.wallet)}</td>
-                <td className="px-4 py-3">{a.chain}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatUsdc(a.total_usdc)}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{a.requests.toLocaleString()}</td>
-                <td className="px-4 py-3"><code className="text-xs">{a.top_endpoint}</code></td>
+                <td className="px-4 py-3 font-mono text-xs">
+                  {a.label ?? formatWallet(a.wallet)}
+                </td>
+                <td className="px-4 py-3">{a.chain_preferred}</td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {formatUsdc(a.spend_usdc_micros)}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">
+                  {a.request_count.toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  <code className="text-xs">
+                    {a.top_endpoints[0]?.endpoint ?? '—'}
+                  </code>
+                </td>
               </tr>
             ))}
             {(agents.data ?? []).length === 0 ? (
