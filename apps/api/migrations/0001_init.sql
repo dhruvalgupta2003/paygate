@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   status              TEXT NOT NULL CHECK (status IN ('pending','settled','refunded','reorged','upstream_failed')),
   settled_at          TIMESTAMPTZ,
   observed_at         TIMESTAMPTZ NOT NULL,
+  redacted_at         TIMESTAMPTZ,                  -- set by DSR redact; GDPR
   PRIMARY KEY (id, observed_at)
 ) PARTITION BY RANGE (observed_at);
 

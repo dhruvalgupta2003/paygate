@@ -1,9 +1,10 @@
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { and, desc, eq, lt, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { transactions, endpoints } from '../db/schema.js';
+import { transactions, endpoints, projects } from '../db/schema.js';
 
 const listQuery = z.object({
   status: z.enum(['pending', 'settled', 'refunded', 'reorged', 'upstream_failed']).optional(),
@@ -103,4 +104,114 @@ export const transactionsRoutes = new Hono()
       settled_at: row.settledAt?.toISOString() ?? null,
       verify_ms: 0,
     });
-  });
+  })
+  // ---------------------------------------------------------------------
+  // Proxy → API ingest.  Server-to-server.  Bearer-token auth.
+  // ---------------------------------------------------------------------
+  .post(
+    '/ingest',
+    zValidator(
+      'json',
+      z.object({
+        project_slug: z.string().regex(/^[a-z0-9][a-z0-9-]{2,62}[a-z0-9]$/),
+        chain: z.string().min(1),
+        tx_hash: z.string().min(1),
+        block_or_slot: z.union([z.number(), z.string()]).optional(),
+        amount_usdc_micros: z.string().regex(/^\d+$/),
+        from_wallet: z.string().min(1),
+        to_wallet: z.string().min(1),
+        nonce: z.string().min(1),
+        endpoint_path: z.string().min(1),
+        status: z.enum(['pending', 'settled', 'refunded', 'reorged', 'upstream_failed']).default('settled'),
+      }),
+    ),
+    async (c) => {
+      // Shared-secret bearer auth.  Set both sides' env to the same value.
+      const expected = process.env['PAYGATE_API_INGEST_TOKEN'];
+      if (!expected) {
+        return c.json(
+          { error: 'INGEST_DISABLED', detail: 'set PAYGATE_API_INGEST_TOKEN on the API to enable proxy ingest' },
+          503,
+        );
+      }
+      const authHeader = c.req.header('authorization') ?? '';
+      const provided = authHeader.replace(/^Bearer\s+/i, '');
+      const a = Buffer.from(provided, 'utf8');
+      const b = Buffer.from(expected, 'utf8');
+      if (a.length !== b.length || !timingSafeEqual(a, b)) {
+        return c.json({ error: 'unauthorized', detail: 'invalid ingest token' }, 401);
+      }
+
+      const body = c.req.valid('json');
+      const db = getDb();
+
+      // Upsert project.
+      let projectRow = await db
+        .select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.slug, body.project_slug))
+        .limit(1);
+      let projectId = projectRow[0]?.id;
+      if (!projectId) {
+        projectId = randomUUID();
+        await db.insert(projects).values({
+          id: projectId,
+          slug: body.project_slug,
+          name: body.project_slug,
+          ownerWallet: body.to_wallet,
+        });
+      }
+
+      // Upsert endpoint.
+      const existingEp = await db
+        .select({ id: endpoints.id })
+        .from(endpoints)
+        .where(and(eq(endpoints.projectId, projectId), eq(endpoints.pathGlob, body.endpoint_path)))
+        .limit(1);
+      let endpointId = existingEp[0]?.id;
+      if (!endpointId) {
+        endpointId = randomUUID();
+        await db.insert(endpoints).values({
+          id: endpointId,
+          projectId,
+          pathGlob: body.endpoint_path,
+          priceUsdcMicros: BigInt(body.amount_usdc_micros),
+        });
+      }
+
+      // Insert transaction (idempotent via (chain, tx_hash, observed_at) unique).
+      const now = new Date();
+      const id = randomUUID();
+      try {
+        await db.insert(transactions).values({
+          id,
+          projectId,
+          endpointId,
+          chain: body.chain,
+          txHash: body.tx_hash,
+          blockOrSlot:
+            body.block_or_slot === undefined
+              ? null
+              : typeof body.block_or_slot === 'number'
+                ? BigInt(body.block_or_slot)
+                : BigInt(body.block_or_slot),
+          amountUsdcMicros: BigInt(body.amount_usdc_micros),
+          fromWallet: body.from_wallet,
+          toWallet: body.to_wallet,
+          nonce: body.nonce,
+          status: body.status,
+          settledAt: body.status === 'settled' ? now : null,
+          observedAt: now,
+        });
+      } catch (err) {
+        // Duplicate (same chain+tx+time) → treat as idempotent.
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('duplicate key') || msg.includes('unique')) {
+          return c.json({ id, status: 'duplicate' });
+        }
+        throw err;
+      }
+
+      return c.json({ id, status: 'recorded' }, 201);
+    },
+  );

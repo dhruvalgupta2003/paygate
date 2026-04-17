@@ -258,9 +258,31 @@ export class CoreProxy {
 
           // Forward upstream.
           const upstreamResp = await this.forward(request);
+
+          // Extract settlement tx hash (EVM auth carries it explicitly).
+          const settlementTxHash =
+            (auth as { settlementTxHash?: string }).settlementTxHash ?? '';
+
+          // Fire-and-forget: tell the API about this settlement so the
+          // dashboard can show it.  Never blocks the response.
+          this.reportSettlement({
+            chain,
+            txHash: settlementTxHash,
+            amountMicros: verify.settledAmount,
+            fromWallet: verify.payer,
+            toWallet: verify.recipient,
+            nonce: auth.nonce,
+            endpointPath: matched.endpoint.path,
+          }).catch((err) => {
+            log.warn(
+              { err: (err as Error).message },
+              'settlement → api ingest failed (non-fatal)',
+            );
+          });
+
           const receipt = buildReceipt({
             chain,
-            txHash: '',
+            txHash: settlementTxHash,
             settled: verify.settledAmount,
           });
           return {
@@ -287,6 +309,52 @@ export class CoreProxy {
         }
       },
     );
+  }
+
+  /**
+   * Fire-and-forget ingest: POSTs a settled transaction to the paired API
+   * so the dashboard reflects it.  Never throws into the hot path; errors
+   * are logged by the caller and dropped.  Configured via env:
+   *   PAYGATE_API_URL           e.g. http://localhost:4020
+   *   PAYGATE_API_INGEST_TOKEN  shared bearer token
+   * If either is absent, the hook is skipped silently.
+   */
+  private async reportSettlement(info: {
+    chain: string;
+    txHash: string;
+    amountMicros: string;
+    fromWallet: string;
+    toWallet: string;
+    nonce: string;
+    endpointPath: string;
+  }): Promise<void> {
+    const apiUrl = process.env['PAYGATE_API_URL'];
+    const token = process.env['PAYGATE_API_INGEST_TOKEN'];
+    if (!apiUrl || !token) return;
+
+    const slug = this.cfg.project?.slug ?? 'demo-api';
+    const res = await fetch(`${apiUrl.replace(/\/$/, '')}/_paygate/v1/transactions/ingest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        project_slug: slug,
+        chain: info.chain,
+        tx_hash: info.txHash,
+        amount_usdc_micros: info.amountMicros,
+        from_wallet: info.fromWallet,
+        to_wallet: info.toWallet,
+        nonce: info.nonce,
+        endpoint_path: info.endpointPath,
+        status: 'settled',
+      }),
+      signal: AbortSignal.timeout(3_000),
+    });
+    if (!res.ok) {
+      throw new Error(`api ingest returned ${res.status}`);
+    }
   }
 
   private errorResponse(err: PayGateError): PayGateResponse {
