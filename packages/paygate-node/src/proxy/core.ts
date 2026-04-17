@@ -122,9 +122,11 @@ export class CoreProxy {
                 facilitator: this.cfg.advanced.facilitator_url,
               },
             );
+            // Store the full serialized requirement so verify can replay
+            // it exactly — the agent binds to this nonce and digest.
             await this.nonceStore.putRequirement(
               req.nonce,
-              req.digest,
+              JSON.stringify(req),
               this.cfg.defaults.payment_ttl_seconds + 60,
             );
             const { status, headers, body } = encodeRequirements(req);
@@ -147,13 +149,26 @@ export class CoreProxy {
             if (err instanceof PayGateError) return { response: this.errorResponse(err) };
             throw err;
           }
-          const storedDigest = await this.nonceStore.getRequirement(auth.nonce);
-          if (!storedDigest) {
+          const stored = await this.nonceStore.getRequirement(auth.nonce);
+          if (!stored) {
             return {
               response: this.errorResponse(
                 new PayGateError({
                   code: 'NONCE_UNKNOWN',
                   detail: 'requirements have expired or were never issued here; request a fresh 402',
+                }),
+              ),
+            };
+          }
+          let storedRequirements: PaymentRequirements;
+          try {
+            storedRequirements = JSON.parse(stored) as PaymentRequirements;
+          } catch {
+            return {
+              response: this.errorResponse(
+                new PayGateError({
+                  code: 'INTERNAL',
+                  detail: 'corrupt requirement record',
                 }),
               ),
             };
@@ -213,18 +228,18 @@ export class CoreProxy {
             };
           }
 
-          // Verify (facilitator preferred, direct fallback).
+          // Verify against the stored requirement — any mutation of
+          // amount/chain/payTo by the agent would already have failed
+          // digest checks inside the adapter.
           const verifyStart = performance.now();
           let verify: VerifyResult;
           if (this.facilitator && this.cfg.defaults.facilitator === 'coinbase') {
-            const requirements = await this.rebuildRequirements(adapter, matched.priceMicros, chain);
-            verify = await this.facilitator.verify(requirements, xPayment);
+            verify = await this.facilitator.verify(storedRequirements, xPayment);
             if (verify.ok) {
-              verify = await this.facilitator.settle(requirements, xPayment);
+              verify = await this.facilitator.settle(storedRequirements, xPayment);
             }
           } else {
-            const requirements = await this.rebuildRequirements(adapter, matched.priceMicros, chain);
-            verify = await adapter.verifyPayment(requirements, xPayment);
+            verify = await adapter.verifyPayment(storedRequirements, xPayment);
           }
           metrics.verifyDurationSeconds.observe({ chain, mode: this.cfg.defaults.facilitator }, (performance.now() - verifyStart) / 1000);
 
@@ -274,22 +289,6 @@ export class CoreProxy {
     );
   }
 
-  private async rebuildRequirements(
-    adapter: ChainAdapter,
-    amountMicros: bigint,
-    chain: string,
-  ): Promise<PaymentRequirements> {
-    // We rebuild requirements from the *stored* digest fields, not from
-    // client input, so a malicious agent cannot swap chain/amount.
-    return adapter.buildPaymentRequirements(
-      { chain: chain as ChainId, asset: '', amount: amountMicros.toString() },
-      {
-        payTo: (this.cfg.wallets as Record<string, string | undefined>)[chain] ?? '',
-        validUntilSeconds: this.cfg.defaults.payment_ttl_seconds,
-      },
-    );
-  }
-
   private errorResponse(err: PayGateError): PayGateResponse {
     const body: Record<string, unknown> = err.toJSON();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -300,7 +299,16 @@ export class CoreProxy {
   }
 
   private async forward(request: PayGateRequest): Promise<PayGateResponse> {
-    const target = new URL(request.url, this.upstream);
+    // Strip the scheme+host off request.url if it's absolute — otherwise
+    // `new URL(abs, upstream)` ignores the upstream base and we end up
+    // forwarding back to our own proxy, creating an infinite loop.
+    let target: URL;
+    try {
+      const parsed = new URL(request.url);
+      target = new URL(parsed.pathname + parsed.search, this.upstream);
+    } catch {
+      target = new URL(request.url, this.upstream);
+    }
     const headers = headersToObject(request.headers);
     delete headers['content-length'];
     delete headers['host'];

@@ -51,7 +51,7 @@ export async function startServer(opts: StartOptions): Promise<void> {
     : new NullComplianceScreen();
 
   const facilitator =
-    cfg.defaults.facilitator === 'coinbase'
+    cfg.defaults.facilitator === 'coinbase' && opts.dev !== true
       ? new FacilitatorClient({
           url: cfg.advanced.facilitator_url ?? DEFAULT_FACILITATOR_URL,
           ...(process.env['PAYGATE_FACILITATOR_API_KEY']
@@ -60,12 +60,14 @@ export async function startServer(opts: StartOptions): Promise<void> {
         })
       : undefined;
 
+  const devMode = opts.dev === true;
   const adapters: Record<string, ChainAdapter> = {};
   if (cfg.wallets.base) {
     adapters['base'] = new BaseAdapter({
       chainId: 'base',
       rpcUrl: process.env['PAYGATE_BASE_RPC_URL'] ?? 'https://mainnet.base.org',
       receivingWallet: cfg.wallets.base,
+      devMode,
       ...(cfg.advanced.facilitator_url
         ? { facilitatorUrl: cfg.advanced.facilitator_url }
         : {}),
@@ -76,6 +78,7 @@ export async function startServer(opts: StartOptions): Promise<void> {
       chainId: 'base-sepolia',
       rpcUrl: process.env['PAYGATE_BASE_SEPOLIA_RPC_URL'] ?? 'https://sepolia.base.org',
       receivingWallet: cfg.wallets['base-sepolia'],
+      devMode,
     });
   }
   if (cfg.wallets.solana) {
@@ -157,10 +160,24 @@ export async function startServer(opts: StartOptions): Promise<void> {
         body: body.length > 0 ? body : undefined,
       });
       const webRes = await app.fetch(webReq);
+      const payload = Buffer.from(await webRes.arrayBuffer());
+
       res.statusCode = webRes.status;
-      webRes.headers.forEach((v, k) => res.setHeader(k, v));
-      const payload = await webRes.arrayBuffer();
-      res.end(Buffer.from(payload));
+      // Don't forward framing / hop-by-hop headers — node:http computes
+      // Content-Length from the buffer we hand it.  Passing Hono's values
+      // through causes undici on the client side to see a truncated
+      // response and silently retry GETs, duplicating settlement requests.
+      const dropped = new Set([
+        'content-length',
+        'transfer-encoding',
+        'connection',
+        'keep-alive',
+      ]);
+      webRes.headers.forEach((v, k) => {
+        if (!dropped.has(k.toLowerCase())) res.setHeader(k, v);
+      });
+      res.setHeader('Content-Length', payload.length);
+      res.end(payload);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'internal error';
       res.statusCode = 500;

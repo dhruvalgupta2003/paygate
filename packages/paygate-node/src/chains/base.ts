@@ -92,6 +92,9 @@ export interface BaseAdapterOptions {
   readonly confirmations?: number;
   readonly receivingWallet: string;
   readonly facilitatorUrl?: string;
+  /** If true, skip the on-chain `authorizationState` nonce check.  Use only
+   *  for local demo / dev runs where the agent is not actually settling. */
+  readonly devMode?: boolean;
 }
 
 export class BaseAdapter implements ChainAdapter {
@@ -102,6 +105,7 @@ export class BaseAdapter implements ChainAdapter {
   private readonly receiver: Address;
   private readonly confirmations: number;
   private readonly facilitatorUrl: string | undefined;
+  private readonly devMode: boolean;
   private readonly chainMeta: typeof base | typeof baseSepolia;
 
   constructor(opts: BaseAdapterOptions) {
@@ -111,6 +115,7 @@ export class BaseAdapter implements ChainAdapter {
       chain: this.chainMeta,
       transport: http(opts.rpcUrl, { batch: true, retryCount: 2, retryDelay: 200 }),
     }) as unknown as MinimalRpcClient;
+    this.devMode = opts.devMode === true;
     this.usdc = getAddress(USDC_ADDRESSES[opts.chainId]);
     this.receiver = getAddress(opts.receivingWallet);
     this.confirmations = opts.confirmations ?? 2;
@@ -211,28 +216,30 @@ export class BaseAdapter implements ChainAdapter {
     if (nonceBytes.length !== 32) {
       return { ok: false, code: 'INVALID_SIGNATURE', detail: 'authorization nonce must be bytes32', retryable: false };
     }
-    try {
-      const used = await this.client.readContract({
-        address: this.usdc,
-        abi: USDC_ABI,
-        functionName: 'authorizationState',
-        args: [getAddress(auth.authorization.from), auth.authorization.nonce],
-      });
-      if (used === true) {
+    if (!this.devMode) {
+      try {
+        const used = await this.client.readContract({
+          address: this.usdc,
+          abi: USDC_ABI,
+          functionName: 'authorizationState',
+          args: [getAddress(auth.authorization.from), auth.authorization.nonce],
+        });
+        if (used === true) {
+          return {
+            ok: false,
+            code: 'NONCE_REUSED',
+            detail: 'authorization nonce already consumed on-chain',
+            retryable: false,
+          };
+        }
+      } catch (err) {
         return {
           ok: false,
-          code: 'NONCE_REUSED',
-          detail: 'authorization nonce already consumed on-chain',
-          retryable: false,
+          code: 'RPC_UNAVAILABLE',
+          detail: `rpc call failed: ${(err as Error).message}`,
+          retryable: true,
         };
       }
-    } catch (err) {
-      return {
-        ok: false,
-        code: 'RPC_UNAVAILABLE',
-        detail: `rpc call failed: ${(err as Error).message}`,
-        retryable: true,
-      };
     }
 
     return {

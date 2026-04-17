@@ -7,6 +7,7 @@ import { runVerify } from './verify.js';
 import { runGenerateWebhookSecret } from './keys.js';
 import { runConfig } from './config.js';
 import { runAudit } from './audit.js';
+import { runDemo } from './demo.js';
 
 const program = new Command();
 program
@@ -72,6 +73,24 @@ program
   .option('--file <path>', 'audit log file path')
   .action(async (action: string, opts) => {
     await runAudit(action, opts);
+  });
+
+program
+  .command('demo')
+  .description('Drive a full x402 handshake against a running proxy.')
+  .option('--upstream <url>', 'proxy URL', 'http://localhost:4021')
+  .option('--endpoint <path>', 'endpoint to hit', '/api/v1/weather/sf')
+  .option('--chain <chain>', 'base | base-sepolia', 'base-sepolia')
+  .option('--private-key <hex>', '0x... private key (throwaway ok; generated if omitted)')
+  .option('-v, --verbose', 'verbose output')
+  .action(async (opts) => {
+    await runDemo({
+      upstream: opts.upstream,
+      endpoint: opts.endpoint,
+      chain: opts.chain,
+      ...(opts.privateKey ? { privateKey: opts.privateKey } : {}),
+      verbose: opts.verbose === true,
+    });
   });
 
 program.parseAsync(process.argv).catch((err) => {
