@@ -49,6 +49,5 @@
 
 ## Optional
 
-- [AI Agent Economy Playbook](https://github.com/paygate/paygate/blob/main/docs/AI_Agent_Economy_Playbook.md): product strategy + fundraising narrative.
 - [Contributing](https://github.com/paygate/paygate/blob/main/CONTRIBUTING.md)
 - [Security disclosure](https://github.com/paygate/paygate/blob/main/SECURITY.md)

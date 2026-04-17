@@ -33,11 +33,6 @@ For LLMs:
 - **[llms.txt](./llms.txt)** — machine-readable doc index.
 - **[llms-full.txt](./llms-full.txt)** — flattened knowledge dump.
 
-Product / strategy:
-
-- **[AI Agent Economy Playbook](./AI_Agent_Economy_Playbook.md)** —
-  product direction, revenue model, GTM.
-
 Reference:
 
 - **[Brand assets](./assets/README.md)** — logo, palette, wordmark.

@@ -1,3 +1,10 @@
+# Operator-only files: strategy docs, launch drafts, notes, recording
+# artefacts.  Never committed.  See _local/README.md.
+_local/
+.local/
+*.local.md
+*.private.md
+
 # Dependencies
 node_modules/
 .pnpm-store/

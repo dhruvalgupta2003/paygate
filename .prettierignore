@@ -5,9 +5,10 @@ build
 .turbo
 .next
 coverage
+_local
+.local
 *.generated.*
 pnpm-lock.yaml
 poetry.lock
 uv.lock
 package-lock.json
-docs/AI_Agent_Economy_Playbook.md

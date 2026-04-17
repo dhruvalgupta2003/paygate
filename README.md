@@ -156,7 +156,6 @@ paygate/
 │   ├── python-flask/
 │   └── django-drf/
 ├── docs/
-│   ├── AI_Agent_Economy_Playbook.md
 │   ├── architecture.md
 │   ├── security.md
 │   ├── compliance.md
@@ -223,7 +222,6 @@ Full threat model: [docs/security.md](./docs/security.md).
 - **[API reference](./docs/api-reference.md)** — REST, WebSocket, CLI.
 - **[Deployment](./docs/deployment.md)** — Fly, Render, Railway, ECS, Kubernetes.
 - **[LLM integration](./AGENTS.md)** — how AI coding agents should consume PayGate.
-- **[Full playbook](./docs/AI_Agent_Economy_Playbook.md)** — product strategy.
 
 ---
 

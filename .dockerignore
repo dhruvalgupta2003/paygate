@@ -1,0 +1,42 @@
+# Operator-only — never goes into a Docker image.
+_local/
+.local/
+*.local.md
+*.private.md
+
+# Build artefacts (rebuilt inside the image)
+node_modules/
+**/node_modules/
+**/dist/
+**/lib/
+**/build/
+**/.turbo/
+**/.next/
+**/coverage/
+**/.vite/
+**/__pycache__/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.pytest_cache/
+
+# VCS + local tooling
+.git/
+.github/
+.vscode/
+.idea/
+.changeset/
+
+# Tests / docs (image is runtime, not docs)
+**/test/
+**/tests/
+docs/
+examples/
+
+# Env (never bake secrets in)
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
