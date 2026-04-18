@@ -1,8 +1,11 @@
 <p align="center">
-  <img src="./docs/assets/logo.svg" alt="PayGate" width="128" height="128" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/logo-inverted.svg">
+    <img src="./docs/assets/logo.svg" alt="PayGate" width="96" height="96" />
+  </picture>
 </p>
 
-<h1 align="center">PayGate</h1>
+<h1 align="center">paygate</h1>
 
 <p align="center">
   <strong>x402 paywall for AI agent traffic.</strong><br/>
