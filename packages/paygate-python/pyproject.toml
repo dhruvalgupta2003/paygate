@@ -23,7 +23,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "pydantic[email]>=2.8",
+    "pydantic[email]>=2.13.2",
     "pyyaml>=6.0",
     "httpx>=0.27",
     "typer>=0.12",
