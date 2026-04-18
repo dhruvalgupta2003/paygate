@@ -109,4 +109,4 @@ first — it catches 80% of misconfig.
   `amount`; redact `r`, `s`, `transaction`).
 - PayGate version: `paygate --version`.
 
-Open an issue: <https://github.com/paygate/paygate/issues/new/choose>.
+Open an issue: <https://github.com/dhruvalgupta2003/paygate/issues/new/choose>.

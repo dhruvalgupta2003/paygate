@@ -10,13 +10,12 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@paygate/node"><img alt="npm" src="https://img.shields.io/npm/v/@paygate/node?color=5B4FE9&label=npm%20%40paygate%2Fnode"></a>
-  <a href="https://pypi.org/project/paygate/"><img alt="pypi" src="https://img.shields.io/pypi/v/paygate?color=5B4FE9&label=pypi%20paygate"></a>
   <a href="./LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-10B981"></a>
-  <a href="https://github.com/paygate/paygate/actions"><img alt="ci" src="https://img.shields.io/badge/ci-passing-10B981"></a>
-  <a href="./docs/security.md"><img alt="security" src="https://img.shields.io/badge/security-audited-6D28D9"></a>
-  <a href="https://discord.gg/paygate"><img alt="discord" src="https://img.shields.io/badge/discord-join-5865F2"></a>
+  <img alt="status" src="https://img.shields.io/badge/status-developer%20alpha-F59E0B">
+  <img alt="chain" src="https://img.shields.io/badge/base--sepolia-verified-10B981">
 </p>
+
+> **Alpha notice.** This is a public developer alpha. The core x402 handshake works end-to-end on Base Sepolia (verified with real USDC settlements — see [docs/testnet-demo.md](./docs/testnet-demo.md)). Many adjacent features are documented but not fully wired yet — see [What works today](#what-works-today) and [Known gaps](#known-gaps) below. Not production-ready.
 
 ---
 
@@ -119,18 +118,33 @@ npx @paygate/node start \
 
 ---
 
-## What you get out of the box
+## What works today
 
-- **x402 handshake** — compliant `402 Payment Required` responses, `X-PAYMENT` header parsing, automatic retry contract.
-- **On-chain settlement verification** — direct RPC verification on Base and Solana, or Coinbase facilitator mode for sub-100 ms verify + settle.
-- **Replay, idempotency, and TTL protection** — each payment authorization is bound to a nonce, recipient, amount, and chain; verified in Redis.
-- **Rate limiting + abuse protection** — per-wallet, per-endpoint, per-IP token buckets.
-- **Compliance hooks** — OFAC / Circle sanctions screening, geo-blocklist, travel-rule threshold export.
-- **Dashboard** — revenue/request graphs, endpoint breakdown, wallet heatmap, webhook logs.
-- **Public API directory** — opt-in discovery surface so agents can find your API.
-- **Webhooks** — signed `payment.settled`, `payment.refunded`, `endpoint.rate_limited` events.
-- **OpenTelemetry + Prometheus** — metrics, traces, structured logs.
-- **Dev mode** — one flag bypasses on-chain verify for local testing.
+Real, demonstrable, unit-tested, and validated end-to-end on Base Sepolia:
+
+- **x402 handshake** — compliant `402 Payment Required` responses, `X-PAYMENT` header parsing, retry contract. 32/32 unit tests green.
+- **Real on-chain settlement verification on Base Sepolia** — agent signs EIP-3009, submits `transferWithAuthorization`, proxy verifies the Transfer event matches amount/from/to, forwards to upstream. Round-trip in ~5s, gas cost ~$0.0001. Receipts linkable on [sepolia.basescan.org](https://sepolia.basescan.org).
+- **Replay + TTL protection** — server-issued nonce bound to a canonical-JSON digest of the PaymentRequirements. Reuse → `NONCE_REUSED`. Expired → `EXPIRED_AUTHORIZATION`. In-memory + Redis-backed stores.
+- **Rate limiting** — token bucket by wallet/ip/endpoint scope. Redis Lua script for atomic ops.
+- **Dashboard live against real data** — React + Vite + Tailwind. Overview, Transactions, Endpoints, Agents, Compliance, Webhooks all query a real Postgres via the admin API. Dark-mode bento layout. Runs in ~90 seconds from clone.
+- **Backend API** — Hono + Drizzle + Postgres. Ingest endpoint lets the proxy POST settlements automatically; dashboard reflects them in <500 ms. Bearer-token auth for server-to-server.
+- **`paygate demo` CLI** — one command, fires a full x402 round-trip against your running proxy. Supports `--dev` (no on-chain) and `--submit` (real testnet).
+- **MIT license, open source, no account required.**
+
+## Known gaps
+
+Be honest about what's stubbed or deferred. Production users should know:
+
+- **Solana SPL verification is coded but not yet validated end-to-end on devnet.** Only Base / Base Sepolia have live proof.
+- **Coinbase facilitator mode** is wired, the client exists, but has not been tested against the live `x402.org/facilitator`. Direct-RPC mode is the validated path.
+- **Python SDK** (`paygate` on PyPI) is coded and mirrors the Node SDK API, but has not been built or tested on a clean machine yet. Expect first-boot fixes.
+- **Webhook delivery worker**, **audit log shipper**, **refund flow**, **DSR (GDPR) redact/export**, **evidence ZIP export** — endpoint contracts exist, worker logic is TODO.
+- **Dashboard auth** is unauthenticated in local dev (`PAYGATE_API_AUTH=on` flips it back on, but the SIWE/SIWS login flow itself is stubbed).
+- **Smart contracts** (`contracts/base/PayGateReceipts.sol`) compile but have not been audited or deployed.
+- **Public directory** submission requires a wallet-signed challenge that isn't wired yet.
+- **CI workflows** exist but haven't been triggered against the real org / repo (needs NPM_TOKEN / PYPI / GHCR secrets).
+
+Roadmap + what shipping in public beta unlocks: [docs/roadmap.md](./docs/roadmap.md).
 
 ---
 
@@ -174,24 +188,26 @@ paygate/
 
 ## Security posture
 
-- **Private key isolation.** PayGate never sees your private keys. Receiving wallets are public addresses only. Optional on-chain escrow contracts use AccessControl + timelocks.
-- **Constant-time cryptography.** Signature verification uses audited libraries (`ethers`, `@solana/web3.js`, `solders`).
-- **Replay resistance.** Every payment authorization is bound to `(nonce, recipient, amount, chain, ttl)`; nonces are persisted in Redis and rejected on reuse.
-- **Tamper-resistant audit log.** Every request is hash-chained into an append-only log and can be exported to S3 / GCS for SOC 2 evidence.
-- **Supply-chain hardening.** SBOMs on every release, OSV + Trivy in CI, signed npm + PyPI + container artifacts.
+- **Private key isolation.** PayGate never sees operator private keys. Receiving wallets are public addresses only.
+- **Constant-time cryptography.** Signature verification uses audited libraries (`viem` for EIP-3009/712, `@solana/web3.js` + `tweetnacl` for ed25519). We don't roll our own crypto.
+- **Replay resistance.** Payment authorizations are bound to `(nonce, recipient, amount, chain, ttl)`; nonces are consumed one-shot via Redis `SET NX`.
+- **Hash-chained audit log** — append-only, each row bound to the previous via SHA-256. Tamper-evident on replay.
 - **Responsible disclosure.** See [SECURITY.md](./SECURITY.md).
 
-Full threat model: [docs/security.md](./docs/security.md).
+The nine explicit invariants the code enforces are documented in [docs/security.md](./docs/security.md). **No external security audit has been completed yet — that's scheduled before v1.0, not alpha.**
 
 ---
 
 ## Compliance posture
 
-- **USDC** is issued by Circle, a regulated US money transmitter. PayGate screens senders against Circle's sanctions API + OFAC SDN before settlement.
-- **GDPR** — no wallet-to-identity mapping is stored by default; opt-in fields are redacted via tombstones.
-- **MiCA (EU)** — stablecoin volume is settled on-chain; PayGate acts as infrastructure, not a custodian.
-- **Travel rule** — transactions above the configurable threshold emit a signed JSON payload for your compliance vendor.
-- **SOC 2 evidence pack** — audit log export, access reviews, change-management records. See [docs/compliance.md](./docs/compliance.md).
+Designed for operators to meet their own compliance obligations. PayGate itself is infrastructure, not a custodian.
+
+- **USDC** is issued by Circle, a regulated US money transmitter. Compliance screening hooks exist; Circle sanctions API integration is coded but not yet end-to-end validated against Circle's live response.
+- **GDPR** — wallet addresses are pseudonymous; the DSR redact endpoint exists at the route level but the service implementation is TODO.
+- **MiCA (EU) / travel rule** — threshold export + signed-JSON hooks are documented; full integration with a TRISA/IVMS-101 vendor is up to the operator.
+- **SOC 2 path** — the hash-chained audit log is live; S3/GCS nightly shipper + formal evidence ZIP are TODO.
+
+Full write-up: [docs/compliance.md](./docs/compliance.md). Nothing here should be read as a compliance guarantee — work with your counsel.
 
 ---
 
@@ -230,7 +246,7 @@ Full threat model: [docs/security.md](./docs/security.md).
 See [CONTRIBUTING.md](./CONTRIBUTING.md). We welcome fixes, new middleware adapters (Koa, Elysia, Axum), new chain backends (Polygon, Arbitrum), and example apps.
 
 ```bash
-git clone https://github.com/paygate/paygate.git
+git clone https://github.com/dhruvalgupta2003/paygate.git
 cd paygate
 pnpm install
 pnpm test

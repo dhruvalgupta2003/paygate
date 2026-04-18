@@ -12,7 +12,7 @@ backends, documentation, examples, and research.
 ## Quick start
 
 ```bash
-git clone https://github.com/paygate/paygate.git
+git clone https://github.com/dhruvalgupta2003/paygate.git
 cd paygate
 corepack enable
 pnpm install

@@ -10,7 +10,7 @@ collaborators to do the same.
 **Do not open a public issue.** Use one of:
 
 1. **Preferred — GitHub private vulnerability advisory**
-   <https://github.com/paygate/paygate/security/advisories/new>
+   <https://github.com/dhruvalgupta2003/paygate/security/advisories/new>
 
 2. Email `security@paygate.dev` with PGP encryption.
    ```

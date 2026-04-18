@@ -63,28 +63,36 @@ CREATE TABLE IF NOT EXISTS compliance_events (
 CREATE INDEX IF NOT EXISTS idx_compliance_events_project_at ON compliance_events(project_id, at DESC);
 
 CREATE TABLE IF NOT EXISTS webhook_subscriptions (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id  UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  url         TEXT NOT NULL,
-  events      TEXT[] NOT NULL,
-  secret_hash TEXT NOT NULL,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  rotated_at  TIMESTAMPTZ
+  id                           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id                   UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  url                          TEXT NOT NULL,
+  events                       TEXT[] NOT NULL,
+  secret                       TEXT NOT NULL,
+  secret_hash                  TEXT,                        -- legacy, optional
+  enabled                      BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at                   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  rotated_at                   TIMESTAMPTZ,
+  previous_secret              TEXT,                         -- 10-min overlap during rotation
+  previous_secret_expires_at   TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS webhook_deliveries (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  subscription_id UUID NOT NULL REFERENCES webhook_subscriptions(id) ON DELETE CASCADE,
-  event           TEXT NOT NULL,
-  url             TEXT NOT NULL,
-  payload         JSONB NOT NULL,
-  attempt         INT NOT NULL DEFAULT 0,
-  status          TEXT NOT NULL DEFAULT 'pending'
-                  CHECK (status IN ('pending','delivered','failed','dead')),
-  response_code   INT,
-  next_attempt_at TIMESTAMPTZ,
-  delivered_at    TIMESTAMPTZ,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  subscription_id     UUID REFERENCES webhook_subscriptions(id) ON DELETE CASCADE,
+  project_id          UUID REFERENCES projects(id) ON DELETE CASCADE,
+  event               TEXT NOT NULL,
+  url                 TEXT NOT NULL,
+  payload             JSONB NOT NULL,
+  attempt             INT NOT NULL DEFAULT 0,
+  max_attempts        INT NOT NULL DEFAULT 12,
+  status              TEXT NOT NULL DEFAULT 'pending'
+                      CHECK (status IN ('pending','delivered','failed','dead','delivering')),
+  next_attempt_at     TIMESTAMPTZ,
+  last_response_code  INT,
+  last_response_body  TEXT,
+  last_error          TEXT,
+  delivered_at        TIMESTAMPTZ,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_status_next ON webhook_deliveries(status, next_attempt_at) WHERE status = 'pending';
 

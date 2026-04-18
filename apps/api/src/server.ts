@@ -10,6 +10,8 @@ import { authMiddleware } from './middleware/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { analyticsRoutes } from './routes/analytics.js';
 import { transactionsRoutes } from './routes/transactions.js';
+import { endpointsRoutes } from './routes/endpoints.js';
+import { agentsRoutes } from './routes/agents.js';
 import { refundsRoutes } from './routes/refunds.js';
 import { webhooksRoutes } from './routes/webhooks.js';
 import { configRoutes } from './routes/config.js';
@@ -46,6 +48,8 @@ export function createApp(options: CreateAppOptions = {}): Hono {
 
   admin.route('/analytics', analyticsRoutes);
   admin.route('/transactions', transactionsRoutes);
+  admin.route('/endpoints', endpointsRoutes);
+  admin.route('/agents', agentsRoutes);
   admin.route('/refunds', refundsRoutes);
   admin.route('/webhooks', webhooksRoutes);
   admin.route('/config', configRoutes);

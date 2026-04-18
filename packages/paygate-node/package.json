@@ -6,11 +6,11 @@
   "homepage": "https://paygate.dev",
   "repository": {
     "type": "git",
-    "url": "https://github.com/paygate/paygate.git",
+    "url": "https://github.com/dhruvalgupta2003/paygate.git",
     "directory": "packages/paygate-node"
   },
   "bugs": {
-    "url": "https://github.com/paygate/paygate/issues"
+    "url": "https://github.com/dhruvalgupta2003/paygate/issues"
   },
   "keywords": [
     "x402",
