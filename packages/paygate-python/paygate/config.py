@@ -349,6 +349,11 @@ def load_config_from_file(path: str | Path) -> PayGateConfig:
     return load_config_from_string(raw)
 
 
+def load_config(path: str | Path) -> PayGateConfig:
+    """Friendlier public alias for :func:`load_config_from_file`."""
+    return load_config_from_file(path)
+
+
 __all__ = [
     "Advanced",
     "AdvancedBase",

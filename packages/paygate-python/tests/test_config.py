@@ -16,7 +16,9 @@ endpoints:
     price_usdc: 0.001
 """
     )
-    assert cfg.endpoints[0].price_usdc == "0.001"
+    # Numeric YAML values are normalised to USDC's 6-decimal precision
+    # (mirrors the TypeScript SDK's canonical format).
+    assert cfg.endpoints[0].price_usdc == "0.001000"
     assert cfg.defaults.chain == "base"
 
 

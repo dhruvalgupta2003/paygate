@@ -40,7 +40,7 @@ app.use(
   paygate({
     config: {
       version: 1,
-      wallets: { base: receivingWallet },
+      wallets: { 'base-sepolia': receivingWallet },
       defaults: {
         chain: 'base-sepolia',
         currency: 'USDC',
@@ -83,7 +83,7 @@ app.use(
       },
     },
     adapters: {
-      base: new BaseAdapter({
+      'base-sepolia': new BaseAdapter({
         chainId: 'base-sepolia',
         rpcUrl: process.env.PAYGATE_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
         receivingWallet,
