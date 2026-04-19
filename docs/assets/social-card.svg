@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   1200×630 OG / Twitter card. Ink ground with bone forms.
-  Composition: hairline-grid background, mark upper-left, wordmark center,
-  tagline below, technical chips bottom row, signature bottom-right.
+  Composition: hairline-grid background, doorway mark upper-left,
+  wordmark center-left, tagline below, technical chips bottom row,
+  signature bottom-right.
 
   The horizontal hairline through the optical center is the *meta-threshold*
-  — the same gap the mark itself describes, extended across the entire card.
+  — the foundation line of the doorway extended across the entire card.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img"
      aria-label="Limen — the threshold for agent payments">
@@ -22,13 +23,14 @@
   <!-- meta-threshold: the limen extended across the entire card -->
   <line x1="0" y1="315" x2="1200" y2="315" stroke="#F7F5EF" stroke-opacity="0.10" stroke-width="1"/>
 
-  <!-- mark, scaled and offset to upper-left, sitting above the meta-threshold -->
-  <g fill="#F7F5EF" transform="translate(80,140)">
-    <rect x="0"  y="0"   width="280" height="20" rx="3"/>
-    <rect x="0"  y="84"  width="280" height="36" rx="3"/>
+  <!-- doorway mark, upper-left, sitting on its limen above the meta-threshold -->
+  <g fill="none" stroke="#F7F5EF" stroke-linecap="square" stroke-linejoin="miter"
+     transform="translate(80,120)">
+    <path d="M 24 144 L 24 24 L 184 24 L 184 144" stroke-width="14"/>
+    <line x1="0" y1="158" x2="208" y2="158" stroke-width="18"/>
   </g>
 
-  <!-- wordmark, centered between mark and tagline -->
+  <!-- wordmark -->
   <text x="80" y="430"
         font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
         font-weight="500" font-size="156"

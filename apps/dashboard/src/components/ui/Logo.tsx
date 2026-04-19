@@ -7,9 +7,9 @@ interface LogoProps {
 }
 
 /**
- * Limen mark — two horizontal beams separated by a generous gap.
- * The gap IS the limen: the threshold an agent crosses from free to paid.
- * Inlined so it inherits the surrounding `color` via `currentColor`.
+ * Limen mark — a doorway standing on its threshold.
+ * Two posts + lintel describe the doorway; the wider line beneath is the
+ * limen itself (the foundation, what we sell). Single-stroke, currentColor.
  */
 export function Logo({ size = 28, withWordmark = false, className }: LogoProps) {
   return (
@@ -23,9 +23,9 @@ export function Logo({ size = 28, withWordmark = false, className }: LogoProps) 
         className="shrink-0 select-none"
       >
         <title>Limen</title>
-        <g fill="currentColor">
-          <rect x="48" y="88" width="160" height="14" rx="2" />
-          <rect x="48" y="144" width="160" height="24" rx="2" />
+        <g fill="none" stroke="currentColor" strokeLinecap="square" strokeLinejoin="miter">
+          <path d="M 72 192 L 72 72 L 184 72 L 184 192" strokeWidth="14" />
+          <line x1="52" y1="204" x2="204" y2="204" strokeWidth="18" />
         </g>
       </svg>
       {withWordmark ? (

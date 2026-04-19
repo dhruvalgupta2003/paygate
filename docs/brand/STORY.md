@@ -33,26 +33,26 @@ We are infrastructure.
 
 ## The mark
 
-Two horizontal beams stacked vertically with a generous gap between them.
+A doorway standing on its threshold.
 
-The top beam is the **lintel** — thinner, restrained, architectural. The bottom block is the **paid domain** — anchored, substantive. The gap between them is the **limen** itself.
-
-The mark draws a doorway without drawing a doorway. The negative space carries the meaning. This is intentional: the product *is* the negative space. Limen is what happens between the two beams. We don't sell either domain — we sell the moment of crossing.
+Two posts and a lintel describe the doorway — the architectural form a Roman builder would call a *trilithon*. Beneath the doorway, slightly wider and slightly heavier, runs a single horizontal line: the **limen** itself. In Latin, the lintel is *limen superum* and the threshold step is *limen inferum*. We draw the lower one explicitly. It is the foundation. It is the part of the structure that does the work.
 
 ```
-████████████████████   ← lintel
-                       
-                       ← limen (negative space)
-                       
-████████████████████████   ← paid domain
-████████████████████████
+   ┌───────────────┐         ← lintel (limen superum)
+   │               │
+   │               │         ← the doorway
+   │               │
+   │               │
+ ─────────────────────       ← limen (limen inferum) — what we sell
 ```
+
+The doorway is open at the bottom because passage is the point. An agent walks through it. The threshold underneath is the surface every transition crosses.
 
 Three rules govern the mark:
 
-1. **Two beams, never three.** Adding a third element collapses the threshold metaphor.
-2. **The gap is at least 2× the lintel.** Generous negative space is the brand.
-3. **One ink color.** No gradients, no decorative fills. Restraint is the voice.
+1. **The doorway is open at the bottom.** A closed shape is a wall, not a threshold. Passage must be visible.
+2. **The limen is wider and heavier than the doorway.** It extends past the posts on both sides and uses a thicker stroke. The foundation outweighs the structure.
+3. **One ink color, square caps, mitered joins.** No gradients, no decorative fills, no rounded corners. The voice is architectural. Restraint is the brand.
 
 ## The voice
 

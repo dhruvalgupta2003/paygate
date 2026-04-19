@@ -1,33 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Limen primary mark.
+  Limen primary mark — the doorway.
 
-  Concept: the threshold. Two horizontal beams stacked vertically with
-  generous negative space between them. The gap between the beams IS
-  the limen — the moment of crossing from one state to another. Top
-  beam is the lintel (thinner, restrained). Bottom block is the paid
-  domain (anchored, substantive). Together they describe a doorway
-  without drawing one.
+  A literal trilithon (two posts + one lintel) standing on its limen.
+  In Roman architectural vocabulary, the lintel is "limen superum" and
+  the threshold step is "limen inferum" — the actual line where one
+  domain ends and another begins. We draw the lower limen explicitly
+  and slightly wider than the doorway: it is the foundation, the part
+  of the structure that does the work.
 
-  Construction: 256×256 grid. Two filled rectangles, single color,
-  no gradients, no filters. The proportions are deliberate:
-    top:    14 units tall (the lintel)
-    gap:    42 units (the limen — exactly 3× the lintel)
-    bottom: 24 units tall (anchored, substantive)
+  Construction: 256×256 grid. Stroke-based, single color.
+    - posts:  vertical strokes at x=72 and x=184, height 120
+    - lintel: horizontal stroke connecting posts at y=72
+    - limen:  separate horizontal line at y=204, wider (52→204)
+              and slightly heavier (18 vs 14) — emphasized
 
-  Themes automatically via @media (prefers-color-scheme). Surfaces
-  that don't honor the query fall back to ink (safe on light paper).
+  Themes auto-switch via @media (prefers-color-scheme).
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Limen">
   <title>Limen</title>
   <style>
-    .limen-mark { fill: #0A0A0C; }
+    .limen-stroke { stroke: #0A0A0C; }
     @media (prefers-color-scheme: dark) {
-      .limen-mark { fill: #F7F5EF; }
+      .limen-stroke { stroke: #F7F5EF; }
     }
   </style>
-  <g class="limen-mark">
-    <rect x="48" y="88"  width="160" height="14" rx="2"/>
-    <rect x="48" y="144" width="160" height="24" rx="2"/>
+  <g class="limen-stroke" fill="none" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M 72 192 L 72 72 L 184 72 L 184 192" stroke-width="14"/>
+    <line x1="52" y1="204" x2="204" y2="204" stroke-width="18"/>
   </g>
 </svg>

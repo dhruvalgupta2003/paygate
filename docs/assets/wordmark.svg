@@ -4,26 +4,28 @@
   Wordmark: "limen" set in Space Grotesk Medium, lowercase, tight tracking
   (-0.045em). The lowercase form keeps the mark and wordmark in the same
   optical register — neither dominates.
-  Auto-themes on surfaces that honor prefers-color-scheme.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" role="img" aria-label="limen">
   <title>limen</title>
   <style>
-    .limen-ink { fill: #0A0A0C; }
-    .limen-word {
+    .limen-ink   { fill: #0A0A0C; }
+    .limen-line  { stroke: #0A0A0C; }
+    .limen-word  {
       font-family: 'Space Grotesk', 'Inter', 'InterVariable', system-ui, sans-serif;
       font-weight: 500;
       letter-spacing: -0.045em;
     }
     @media (prefers-color-scheme: dark) {
-      .limen-ink { fill: #F7F5EF; }
+      .limen-ink  { fill: #F7F5EF; }
+      .limen-line { stroke: #F7F5EF; }
     }
   </style>
 
-  <!-- mark scaled to ~180 tall, aligned to optical baseline -->
-  <g class="limen-ink" transform="translate(20,30) scale(0.7)">
-    <rect x="48" y="88"  width="160" height="14" rx="2"/>
-    <rect x="48" y="144" width="160" height="24" rx="2"/>
+  <!-- doorway mark scaled to ~180 tall, aligned to optical baseline -->
+  <g class="limen-line" fill="none" stroke-linecap="square" stroke-linejoin="miter"
+     transform="translate(20,30) scale(0.7)">
+    <path d="M 72 192 L 72 72 L 184 72 L 184 192" stroke-width="14"/>
+    <line x1="52" y1="204" x2="204" y2="204" stroke-width="18"/>
   </g>
 
   <text x="220" y="180" class="limen-ink limen-word" font-size="168">limen</text>

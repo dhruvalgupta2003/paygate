@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Limen mark for fixed dark surfaces. Bone white on ink.
+  Limen mark for fixed dark surfaces. Bone stroke on ink.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Limen">
   <title>Limen</title>
-  <g fill="#F7F5EF">
-    <rect x="48" y="88"  width="160" height="14" rx="2"/>
-    <rect x="48" y="144" width="160" height="24" rx="2"/>
+  <g fill="none" stroke="#F7F5EF" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M 72 192 L 72 72 L 184 72 L 184 192" stroke-width="14"/>
+    <line x1="52" y1="204" x2="204" y2="204" stroke-width="18"/>
   </g>
 </svg>
