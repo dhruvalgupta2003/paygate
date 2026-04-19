@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.9
 
-FROM node:20.18.0-bookworm-slim AS builder
+FROM node:25.9.0-bookworm-slim AS builder
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 COPY pnpm-workspace.yaml package.json tsconfig.base.json turbo.json ./
