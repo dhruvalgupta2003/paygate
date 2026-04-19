@@ -112,21 +112,22 @@ export const analyticsRoutes = new Hono()
     const start = new Date(Date.now() - windowMs);
 
     if (metric === 'revenue_usdc') {
+      const startIso = start.toISOString();
       const rows = (await db.execute(sql`
         SELECT
           to_char(date_trunc('hour', observed_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS t,
-          coalesce(sum(amount_usdc_micros)::text, '0') AS v
+          coalesce(sum(amount_usdc_micros)::numeric, 0)::float8 AS v
         FROM transactions
-        WHERE observed_at >= ${start}
+        WHERE observed_at >= ${startIso}::timestamptz
           AND status = 'settled'
         GROUP BY 1
         ORDER BY 1
-      `)) as unknown as ReadonlyArray<{ t: string; v: string }>;
+      `)) as unknown as ReadonlyArray<{ t: string; v: number }>;
       return c.json({
         metric,
         step,
         range,
-        points: rows.map((r) => ({ t: r.t, v: r.v })),
+        points: rows.map((r) => ({ t: r.t, v: Number(r.v) })),
       });
     }
 

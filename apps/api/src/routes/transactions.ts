@@ -5,6 +5,9 @@ import { zValidator } from '@hono/zod-validator';
 import { and, desc, eq, lt, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
 import { transactions, endpoints, projects } from '../db/schema.js';
+import { getEnv } from '../config/env.js';
+import { emitMeterEvent, meterIdentifiersFor } from '../lib/stripe.js';
+import { getLogger } from '../lib/logger.js';
 
 const listQuery = z.object({
   status: z.enum(['pending', 'settled', 'refunded', 'reorged', 'upstream_failed']).optional(),
@@ -107,6 +110,23 @@ export const transactionsRoutes = new Hono()
   })
   // ---------------------------------------------------------------------
   // Proxy → API ingest.  Server-to-server.  Bearer-token auth.
+  //
+  // KNOWN IDEMPOTENCY GAP — fix tracked in TODO(billing-dedup):
+  //   The unique index is on (chain, tx_hash, observed_at) where
+  //   observed_at is server-set at insert time.  Two retransmits of the
+  //   same on-chain tx therefore land as DISTINCT rows (different
+  //   observed_at), each with its own UUID, each emitting its own pair
+  //   of Stripe meter events under distinct identifiers.  Result: a
+  //   misbehaving proxy can double-bill the customer.
+  //
+  //   The right fix is one of:
+  //     (a) accept observed_at from the proxy and rely on (chain,
+  //         tx_hash, observed_at) actually colliding for retries; or
+  //     (b) move idempotency to (chain, tx_hash) only — requires
+  //         reworking the partitioning model since partitioned tables
+  //         require the partition key in unique indexes.
+  //   Stripe's per-identifier dedup does NOT save us here because each
+  //   row gets a fresh UUID → fresh identifier.
   // ---------------------------------------------------------------------
   .post(
     '/ingest',
@@ -145,13 +165,15 @@ export const transactionsRoutes = new Hono()
       const body = c.req.valid('json');
       const db = getDb();
 
-      // Upsert project.
-      let projectRow = await db
-        .select({ id: projects.id })
+      // Upsert project.  Pull stripe_customer_id at the same time so the
+      // settlement → meter hook below has zero extra round-trips.
+      const projectRow = await db
+        .select({ id: projects.id, stripeCustomerId: projects.stripeCustomerId })
         .from(projects)
         .where(eq(projects.slug, body.project_slug))
         .limit(1);
       let projectId = projectRow[0]?.id;
+      let stripeCustomerId = projectRow[0]?.stripeCustomerId ?? null;
       if (!projectId) {
         projectId = randomUUID();
         await db.insert(projects).values({
@@ -160,6 +182,7 @@ export const transactionsRoutes = new Hono()
           name: body.project_slug,
           ownerWallet: body.to_wallet,
         });
+        stripeCustomerId = null;
       }
 
       // Upsert endpoint.
@@ -204,12 +227,42 @@ export const transactionsRoutes = new Hono()
           observedAt: now,
         });
       } catch (err) {
-        // Duplicate (same chain+tx+time) → treat as idempotent.
+        // Duplicate (same chain+tx+time) → treat as idempotent.  Stripe meter
+        // events are also idempotent on the same identifier, so even if a
+        // duplicate slips through we won't double-bill — but we skip the call
+        // here to avoid the wasted API roundtrip.
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('duplicate key') || msg.includes('unique')) {
           return c.json({ id, status: 'duplicate' });
         }
         throw err;
+      }
+
+      // Settlement → Stripe meter.  Fire-and-forget.  emitMeterEvent never
+      // throws and no-ops when STRIPE_BILLING_ENABLED=false or the project
+      // has no stripe_customer_id wired up yet.
+      if (body.status === 'settled' && stripeCustomerId !== null) {
+        const env = getEnv();
+        const ids = meterIdentifiersFor(id);
+        void Promise.all([
+          emitMeterEvent({
+            customerId: stripeCustomerId,
+            eventName: env.STRIPE_METER_TX_NAME,
+            value: '1',
+            identifier: ids.txCount,
+          }),
+          emitMeterEvent({
+            customerId: stripeCustomerId,
+            eventName: env.STRIPE_METER_VOLUME_NAME,
+            value: body.amount_usdc_micros,
+            identifier: ids.volume,
+          }),
+        ]).catch((err: unknown) => {
+          getLogger().debug(
+            { err: (err as Error).message, txId: id },
+            'meter event Promise.all unexpected reject (should not happen)',
+          );
+        });
       }
 
       return c.json({ id, status: 'recorded' }, 201);

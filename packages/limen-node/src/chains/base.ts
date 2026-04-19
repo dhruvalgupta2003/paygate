@@ -1,5 +1,6 @@
 import {
   createPublicClient,
+  encodeFunctionData,
   http,
   getAddress,
   hexToBytes,
@@ -25,6 +26,13 @@ interface MinimalRpcClient {
     logs: ReadonlyArray<{ address: Address; topics: readonly Hex[]; data: Hex }>;
   }>;
   getBlockNumber: () => Promise<bigint>;
+}
+
+/** Structural shape of the bits of a viem WalletClient we actually call.
+ *  Same trick as MinimalRpcClient — keeps the deeply-generic WalletClient
+ *  type out of our public .d.ts so tsup's DTS rollup doesn't choke. */
+export interface MinimalWalletClient {
+  sendTransaction: (args: { to: Address; data: Hex }) => Promise<Hex>;
 }
 
 // USDC's ERC-20 Transfer event signature topic.
@@ -433,15 +441,57 @@ export class BaseAdapter implements ChainAdapter {
     }
   }
 
-  /** Submit the signed authorization on-chain (direct mode). */
-  async submitTransferWithAuthorization(auth: EvmPaymentAuth, signerWalletClient: unknown): Promise<Hex> {
-    // Implementation requires a wallet client (out of scope for the core
-    // adapter; facilitator mode is the recommended production path).
-    throw new LimenError({
-      code: 'BAD_CONFIG',
-      detail: 'direct-submission requires a configured signer; use facilitator mode',
-      cause: { auth: auth.nonce, signerWalletClient: typeof signerWalletClient },
+  /** Submit the signed authorization on-chain (direct mode).
+   *
+   *  The caller supplies a viem WalletClient bound to the *payer's* account
+   *  (the same address that signed the EIP-3009 authorization).  We build
+   *  the `transferWithAuthorization` calldata and send it to USDC; the
+   *  returned tx hash is what the agent puts in `X-PAYMENT.settlementTxHash`.
+   *
+   *  Facilitator mode is still the recommended production path — this method
+   *  exists for self-settling agents and the demo CLI. */
+  async submitTransferWithAuthorization(
+    auth: EvmPaymentAuth,
+    signerWalletClient: MinimalWalletClient,
+  ): Promise<Hex> {
+    if (auth.chain !== this.id) {
+      throw new LimenError({
+        code: 'CHAIN_MISMATCH',
+        detail: `adapter ${this.id} cannot submit auth for chain ${auth.chain}`,
+      });
+    }
+    if (getAddress(auth.asset) !== this.usdc) {
+      throw new LimenError({
+        code: 'ASSET_MISMATCH',
+        detail: `auth.asset ${auth.asset} != canonical USDC ${this.usdc}`,
+      });
+    }
+    const v = auth.authorization.v;
+    const vByte = v === 27 || v === 28 ? v : v + 27;
+    const data = encodeFunctionData({
+      abi: USDC_ABI,
+      functionName: 'transferWithAuthorization',
+      args: [
+        getAddress(auth.authorization.from),
+        getAddress(auth.authorization.to),
+        BigInt(auth.authorization.value),
+        BigInt(auth.authorization.validAfter),
+        BigInt(auth.authorization.validBefore),
+        auth.authorization.nonce,
+        vByte,
+        auth.authorization.r,
+        auth.authorization.s,
+      ],
     });
+    try {
+      return await signerWalletClient.sendTransaction({ to: this.usdc, data });
+    } catch (err) {
+      throw new LimenError({
+        code: 'SETTLEMENT_FAILED',
+        detail: `transferWithAuthorization submission failed: ${(err as Error).message}`,
+        cause: err,
+      });
+    }
   }
 }
 

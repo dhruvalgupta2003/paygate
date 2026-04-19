@@ -9,6 +9,7 @@ const NAV: Array<{ label: string; to: string }> = [
   { label: 'Agents', to: '/agents' },
   { label: 'Compliance', to: '/compliance' },
   { label: 'Webhooks', to: '/webhooks' },
+  { label: 'API Keys', to: '/keys' },
   { label: 'Directory', to: '/directory' },
   { label: 'Settings', to: '/settings' },
 ];

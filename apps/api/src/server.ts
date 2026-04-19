@@ -20,6 +20,9 @@ import { dsrRoutes } from './routes/dsr.js';
 import { evidenceRoutes } from './routes/evidence.js';
 import { complianceRoutes } from './routes/compliance.js';
 import { auditRoutes } from './routes/audit.js';
+import { keysRoutes } from './routes/keys.js';
+import { stripeWebhookRoutes } from './routes/stripe-webhook.js';
+import { billingRoutes } from './routes/billing.js';
 
 export interface CreateAppOptions {
   /** When true, skip auth middleware on the admin surface.  Localhost-only. */
@@ -38,6 +41,10 @@ export function createApp(options: CreateAppOptions = {}): Hono {
 
   // Public health + metrics — no auth.
   app.route('/', healthRoutes);
+
+  // Stripe webhook — public, signature-verified.  Mounted OUTSIDE the
+  // admin auth gate because Stripe authenticates with HMAC, not bearer.
+  app.route('/_limen/v1/stripe/webhook', stripeWebhookRoutes);
 
   // Admin surface.
   const admin = new OpenAPIHono();
@@ -58,6 +65,8 @@ export function createApp(options: CreateAppOptions = {}): Hono {
   admin.route('/evidence', evidenceRoutes);
   admin.route('/compliance', complianceRoutes);
   admin.route('/audit', auditRoutes);
+  admin.route('/keys', keysRoutes);
+  admin.route('/billing', billingRoutes);
 
   app.route('/_limen/v1', admin);
 

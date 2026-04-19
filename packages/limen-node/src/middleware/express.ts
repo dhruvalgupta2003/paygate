@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { CoreProxy, type CoreProxyDeps } from '../proxy/core.js';
 import type { LimenRequest } from '../types.js';
 
@@ -7,13 +7,13 @@ export interface ExpressLimenOptions extends Omit<CoreProxyDeps, 'upstream'> {
 }
 
 /** Express middleware factory.  Use `app.use(limen({...}))`. */
-export function limen(options: ExpressLimenOptions) {
+export function limen(options: ExpressLimenOptions): RequestHandler {
   const proxy = new CoreProxy({
     ...options,
     upstream: options.upstream ?? 'http://localhost:3000',
   });
 
-  return async function limenMiddleware(req: Request, res: Response, next: NextFunction) {
+  const handler: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     const pgReq: LimenRequest = {
       method: req.method,
       url: req.originalUrl,
@@ -44,4 +44,5 @@ export function limen(options: ExpressLimenOptions) {
       next(err);
     }
   };
+  return handler;
 }

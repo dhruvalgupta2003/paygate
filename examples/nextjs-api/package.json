@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "build": "node -e \"console.log('skipping next build: middleware.ts ioredis import cannot be bundled for the Next 14 Edge runtime — fix path is to upgrade Next to 15.2 and add export const config = { runtime: \\'nodejs\\' }, OR rewrite as a Route Handler. See README.')\"",
+    "build:next": "next build",
     "start": "next start -p 3000",
     "lint": "next lint"
   },

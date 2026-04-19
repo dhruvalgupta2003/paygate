@@ -38,6 +38,16 @@ const envSchema = z.object({
 
   LIMEN_ADMIN_PUBKEY_ALLOWLIST: commaList.default(''),
 
+  /**
+   * Per-deploy pepper mixed into API key hashes.  Rotating this invalidates
+   * every issued key (effectively a panic-button).  Required in production;
+   * in dev a deterministic default is allowed so the API boots empty.
+   */
+  LIMEN_API_KEY_PEPPER: z
+    .string()
+    .min(16, 'LIMEN_API_KEY_PEPPER must be at least 16 bytes')
+    .default('dev-only-do-not-use-in-prod-pepper-xxxxxxxx'),
+
   LIMEN_WEBHOOK_SIGNING_SECRET: z.string().min(32),
   LIMEN_WEBHOOK_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
 
@@ -61,6 +71,26 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
+
+  // ---------------------------------------------------------------------
+  // Stripe billing (opt-in).  When STRIPE_BILLING_ENABLED is false, the
+  // API boots without any Stripe credentials and every Stripe code path
+  // is a structured no-op.  When true, the secret/webhook envs become
+  // required at first use (lib/stripe.ts validates them lazily).
+  // ---------------------------------------------------------------------
+  STRIPE_BILLING_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_API_VERSION: z.string().default('2024-11-20.acacia'),
+  STRIPE_METER_TX_NAME: z.string().default('limen_settled_transaction'),
+  STRIPE_METER_VOLUME_NAME: z.string().default('limen_settled_volume_micros'),
+  STRIPE_BILLING_PORTAL_RETURN_URL: z
+    .string()
+    .url()
+    .default('http://localhost:5173/settings'),
 });
 
 export type Env = z.infer<typeof envSchema>;

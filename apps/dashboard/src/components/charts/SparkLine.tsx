@@ -1,6 +1,9 @@
 import { cn } from '../../lib/cn';
 
 const TONES = {
+  cobalt: '#2856B3',
+  copper: '#B86E3C',
+  mint: '#059669',
   indigo: '#4F46E5',
   emerald: '#10B981',
   amber: '#F59E0B',

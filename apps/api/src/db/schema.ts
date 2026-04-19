@@ -25,13 +25,29 @@ import {
 // Core
 // ---------------------------------------------------------------------------
 
-export const projects = pgTable('projects', {
-  id: uuid('id').primaryKey(),
-  slug: text('slug').notNull().unique(),
-  name: text('name').notNull(),
-  ownerWallet: text('owner_wallet').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const projects = pgTable(
+  'projects',
+  {
+    id: uuid('id').primaryKey(),
+    slug: text('slug').notNull().unique(),
+    name: text('name').notNull(),
+    ownerWallet: text('owner_wallet').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+
+    // Stripe billing (opt-in per project).  customerId is the linkage point;
+    // when null, settled transactions for this project skip metering.  Status
+    // mirrors the latest subscription state we saw via webhook; the proxy may
+    // gate on it in v2 but does not today.
+    stripeCustomerId: text('stripe_customer_id'),
+    stripeSubscriptionId: text('stripe_subscription_id'),
+    billingStatus: text('billing_status').notNull().default('inactive'),
+    billingPeriodStart: timestamp('billing_period_start', { withTimezone: true }),
+    billingPeriodEnd: timestamp('billing_period_end', { withTimezone: true }),
+  },
+  (t) => ({
+    byStripeCustomer: uniqueIndex('projects_stripe_customer_id_idx').on(t.stripeCustomerId),
+  }),
+);
 
 export const endpoints = pgTable(
   'endpoints',
@@ -183,13 +199,14 @@ export const auditLog = pgTable(
     action: text('action').notNull(),
     target: text('target').notNull(),
     meta: jsonb('meta').notNull().default({}),
-    prev: text('prev').notNull(),
-    hash: text('hash').notNull(),
+    // Live table columns are prev_hash / row_hash — see migrations/0001_init.sql.
+    prev: text('prev_hash').notNull(),
+    hash: text('row_hash').notNull(),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
-    byProjectAt: index('audit_log_project_at_idx').on(t.projectId, t.at),
-    byAt: index('audit_log_at_idx').on(t.at),
+    byProjectAt: index('idx_audit_log_project_at').on(t.projectId, t.at),
+    byAt: index('idx_audit_log_at').on(t.at),
   }),
 );
 
@@ -231,6 +248,55 @@ export const refunds = pgTable(
   }),
 );
 
+// ---------------------------------------------------------------------------
+// API Keys
+// ---------------------------------------------------------------------------
+
+/**
+ * Hashed admin/customer API keys.  Bearer tokens follow the format
+ *   lk_<prefix>_<secret>
+ * where `prefix` is the first 8 chars of the key id (uniquely-indexed) and
+ * `secret` is verified against `hash` via timing-safe compare.  We never
+ * store the plaintext — `hash` is sha256 of the raw secret with a
+ * per-deploy pepper (env LIMEN_API_KEY_PEPPER).
+ */
+export const apiKeys = pgTable(
+  'api_keys',
+  {
+    id: uuid('id').primaryKey(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    prefix: text('prefix').notNull(),
+    hash: text('hash').notNull(),
+    role: text('role').notNull().default('admin'), // viewer | admin | owner
+    createdBy: text('created_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (t) => ({
+    byPrefix: uniqueIndex('api_keys_prefix_idx').on(t.prefix),
+    byProject: index('api_keys_project_idx').on(t.projectId),
+  }),
+);
+
+/**
+ * Stripe webhook event-id dedup ledger.
+ *
+ * Stripe retries deliveries on 5xx and may legitimately re-deliver after
+ * its own internal blips.  Without dedup, a replayed `subscription.updated`
+ * could roll a customer's billing_status backwards.  We INSERT ON CONFLICT
+ * DO NOTHING; if the insert returns no row the event is a replay and the
+ * handler skips the side effects with a 200 ack so Stripe stops retrying.
+ */
+export const stripeProcessedEvents = pgTable('stripe_processed_events', {
+  eventId: text('event_id').primaryKey(),
+  eventType: text('event_type').notNull(),
+  processedAt: timestamp('processed_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const directoryListings = pgTable('directory_listings', {
   projectId: uuid('project_id')
     .primaryKey()
@@ -256,3 +322,4 @@ export type AuditRow = typeof auditLog.$inferSelect;
 export type DsrTombstone = typeof dsrTombstones.$inferSelect;
 export type Refund = typeof refunds.$inferSelect;
 export type DirectoryListing = typeof directoryListings.$inferSelect;
+export type ApiKey = typeof apiKeys.$inferSelect;

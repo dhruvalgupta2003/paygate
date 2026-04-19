@@ -13,6 +13,7 @@ import { Route as WebhooksRouteImport } from './routes/webhooks'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as KeysRouteImport } from './routes/keys'
 import { Route as EndpointsRouteImport } from './routes/endpoints'
 import { Route as DirectoryRouteImport } from './routes/directory'
 import { Route as ComplianceRouteImport } from './routes/compliance'
@@ -37,6 +38,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeysRoute = KeysRouteImport.update({
+  id: '/keys',
+  path: '/keys',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EndpointsRoute = EndpointsRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/compliance': typeof ComplianceRoute
   '/directory': typeof DirectoryRoute
   '/endpoints': typeof EndpointsRoute
+  '/keys': typeof KeysRoute
   '/onboarding': typeof OnboardingRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/compliance': typeof ComplianceRoute
   '/directory': typeof DirectoryRoute
   '/endpoints': typeof EndpointsRoute
+  '/keys': typeof KeysRoute
   '/onboarding': typeof OnboardingRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/compliance': typeof ComplianceRoute
   '/directory': typeof DirectoryRoute
   '/endpoints': typeof EndpointsRoute
+  '/keys': typeof KeysRoute
   '/onboarding': typeof OnboardingRoute
   '/settings': typeof SettingsRoute
   '/transactions': typeof TransactionsRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/compliance'
     | '/directory'
     | '/endpoints'
+    | '/keys'
     | '/onboarding'
     | '/settings'
     | '/transactions'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/compliance'
     | '/directory'
     | '/endpoints'
+    | '/keys'
     | '/onboarding'
     | '/settings'
     | '/transactions'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/compliance'
     | '/directory'
     | '/endpoints'
+    | '/keys'
     | '/onboarding'
     | '/settings'
     | '/transactions'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   ComplianceRoute: typeof ComplianceRoute
   DirectoryRoute: typeof DirectoryRoute
   EndpointsRoute: typeof EndpointsRoute
+  KeysRoute: typeof KeysRoute
   OnboardingRoute: typeof OnboardingRoute
   SettingsRoute: typeof SettingsRoute
   TransactionsRoute: typeof TransactionsRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/keys': {
+      id: '/keys'
+      path: '/keys'
+      fullPath: '/keys'
+      preLoaderRoute: typeof KeysRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/endpoints': {
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComplianceRoute: ComplianceRoute,
   DirectoryRoute: DirectoryRoute,
   EndpointsRoute: EndpointsRoute,
+  KeysRoute: KeysRoute,
   OnboardingRoute: OnboardingRoute,
   SettingsRoute: SettingsRoute,
   TransactionsRoute: TransactionsRoute,
