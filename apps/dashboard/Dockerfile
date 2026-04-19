@@ -11,7 +11,7 @@ COPY apps/dashboard/src ./apps/dashboard/src
 COPY apps/dashboard/public ./apps/dashboard/public
 RUN pnpm --filter limen-dashboard build
 
-FROM nginx:1.27-alpine
+FROM nginx:1.29-alpine
 COPY --from=builder /app/apps/dashboard/dist /usr/share/nginx/html
 COPY apps/dashboard/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
