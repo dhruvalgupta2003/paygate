@@ -11,12 +11,12 @@ WORKDIR /app
 COPY examples/fastapi-api/pyproject.toml ./
 COPY examples/fastapi-api/main.py        ./
 
-# Install paygate from the local source tree so the example follows the
+# Install limen from the local source tree so the example follows the
 # workspace version, not whatever is on PyPI.
-COPY packages/paygate-python ./vendor/paygate-python
+COPY packages/limen-python ./vendor/limen-python
 
 RUN pip install --upgrade pip && \
-    pip install ./vendor/paygate-python[fastapi] && \
+    pip install ./vendor/limen-python[fastapi] && \
     pip install fastapi "uvicorn[standard]" redis
 
 EXPOSE 3000

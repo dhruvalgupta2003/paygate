@@ -7,18 +7,18 @@ RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 
 COPY pnpm-workspace.yaml package.json ./
 COPY tsconfig.base.json turbo.json ./
-COPY packages/paygate-node/package.json   packages/paygate-node/package.json
-COPY packages/paygate-node/tsconfig.json  packages/paygate-node/tsconfig.json
-COPY packages/paygate-node/tsup.config.ts packages/paygate-node/tsup.config.ts
+COPY packages/limen-node/package.json   packages/limen-node/package.json
+COPY packages/limen-node/tsconfig.json  packages/limen-node/tsconfig.json
+COPY packages/limen-node/tsup.config.ts packages/limen-node/tsup.config.ts
 COPY examples/hono-api/package.json       examples/hono-api/package.json
 COPY examples/hono-api/tsconfig.json      examples/hono-api/tsconfig.json
 
 RUN --mount=type=cache,target=/root/.pnpm-store \
-    pnpm install --filter paygate-example-hono-api... --frozen-lockfile=false
+    pnpm install --filter limen-example-hono-api... --frozen-lockfile=false
 
-COPY packages/paygate-node/src packages/paygate-node/src
+COPY packages/limen-node/src packages/limen-node/src
 COPY examples/hono-api/src     examples/hono-api/src
-RUN pnpm --filter @paygate/node build
+RUN pnpm --filter @limen/node build
 
 FROM node:20.18.0-bookworm-slim AS runtime
 WORKDIR /app/examples/hono-api

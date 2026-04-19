@@ -1,11 +1,11 @@
 /**
- * Next.js middleware — PayGate guard for /api/premium/*.
+ * Next.js middleware — Limen guard for /api/premium/*.
  *
  * All env vars must be set at build time or provided via `.env.local`.
  * See `.env.example`. The middleware issues a 402 with x402
  * PaymentRequirements when no valid X-PAYMENT is present.
  */
-import { paygateEdge } from '@paygate/node/next';
+import { limenEdge } from '@limen/node/next';
 import {
   BaseAdapter,
   RedisNonceStore,
@@ -13,17 +13,17 @@ import {
   DefaultComplianceScreen,
   FacilitatorClient,
   createLogger,
-} from '@paygate/node';
+} from '@limen/node';
 import Redis from 'ioredis';
 
-const receivingWallet = process.env.PAYGATE_WALLET_BASE_SEPOLIA;
+const receivingWallet = process.env.LIMEN_WALLET_BASE_SEPOLIA;
 if (!receivingWallet) {
-  throw new Error('PAYGATE_WALLET_BASE_SEPOLIA is required.');
+  throw new Error('LIMEN_WALLET_BASE_SEPOLIA is required.');
 }
 
 const redis = new Redis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379');
 
-export const middleware = paygateEdge({
+export const middleware = limenEdge({
   config: {
     version: 1,
     wallets: { base: receivingWallet },
@@ -64,7 +64,7 @@ export const middleware = paygateEdge({
   adapters: {
     base: new BaseAdapter({
       chainId: 'base-sepolia',
-      rpcUrl: process.env.PAYGATE_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
+      rpcUrl: process.env.LIMEN_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
       receivingWallet,
     }),
   },

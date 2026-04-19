@@ -16,7 +16,7 @@ import {
 const API_BASE =
   (import.meta.env['VITE_API_URL'] as string | undefined) ??
   'http://localhost:4020';
-const PREFIX = `${API_BASE}/_paygate/v1`;
+const PREFIX = `${API_BASE}/_limen/v1`;
 
 function rangeFrom(param: string | null): TimeRange {
   if (param && (['1h', '24h', '7d', '30d', '90d'] as string[]).includes(param)) {

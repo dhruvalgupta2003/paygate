@@ -79,7 +79,7 @@ jobs:
           <html lang="en">
           <head>
             <meta charset="utf-8" />
-            <title>PayGate docs preview</title>
+            <title>Limen docs preview</title>
             <meta name="viewport" content="width=device-width,initial-scale=1" />
             <style>
               body{font-family:ui-sans-serif,system-ui,sans-serif;max-width:72ch;margin:3rem auto;padding:0 1.5rem;color:#111;}
@@ -89,7 +89,7 @@ jobs:
             </style>
           </head>
           <body>
-            <h1>PayGate docs preview</h1>
+            <h1>Limen docs preview</h1>
             <ul>
           HTML
           find docs -maxdepth 4 -type f -name '*.md' | sort | while read -r f; do

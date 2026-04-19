@@ -14,7 +14,7 @@ on:
         description: Working directory
         required: false
         type: string
-        default: "packages/paygate-python"
+        default: "packages/limen-python"
       create-env:
         description: Run `hatch env create`
         required: false

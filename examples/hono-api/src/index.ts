@@ -1,14 +1,14 @@
 /**
- * PayGate Example — Hono on @hono/node-server.
+ * Limen Example — Hono on @hono/node-server.
  *
- * Demonstrates the `@paygate/node/hono` middleware charging $0.001 USDC per
+ * Demonstrates the `@limen/node/hono` middleware charging $0.001 USDC per
  * call on Base Sepolia. Identical routes to the Express example so you can
  * A/B test handler frameworks side-by-side.
  */
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import Redis from 'ioredis';
-import { paygateHono } from '@paygate/node/hono';
+import { limenHono } from '@limen/node/hono';
 import {
   BaseAdapter,
   RedisNonceStore,
@@ -16,13 +16,13 @@ import {
   DefaultComplianceScreen,
   FacilitatorClient,
   createLogger,
-} from '@paygate/node';
+} from '@limen/node';
 
 const PORT = Number(process.env.PORT ?? 3000);
 
-const receivingWallet = process.env.PAYGATE_WALLET_BASE_SEPOLIA;
+const receivingWallet = process.env.LIMEN_WALLET_BASE_SEPOLIA;
 if (!receivingWallet) {
-  throw new Error('PAYGATE_WALLET_BASE_SEPOLIA is required.');
+  throw new Error('LIMEN_WALLET_BASE_SEPOLIA is required.');
 }
 
 const redis = new Redis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379');
@@ -31,7 +31,7 @@ const app = new Hono();
 
 app.use(
   '*',
-  paygateHono({
+  limenHono({
     config: {
       version: 1,
       wallets: { base: receivingWallet },
@@ -76,7 +76,7 @@ app.use(
     adapters: {
       base: new BaseAdapter({
         chainId: 'base-sepolia',
-        rpcUrl: process.env.PAYGATE_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
+        rpcUrl: process.env.LIMEN_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
         receivingWallet,
       }),
     },
@@ -116,5 +116,5 @@ app.post('/api/v1/score', async (c) => {
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   // eslint-disable-next-line no-console -- bootstrap banner only
-  console.log(`[paygate-hono] listening on :${info.port} (chain=base-sepolia)`);
+  console.log(`[limen-hono] listening on :${info.port} (chain=base-sepolia)`);
 });

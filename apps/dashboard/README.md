@@ -1,9 +1,9 @@
-# paygate-dashboard
+# limen-dashboard
 
-> The PayGate admin dashboard.  React 18 + Vite + Tailwind + TanStack
+> The Limen admin dashboard.  React 18 + Vite + Tailwind + TanStack
 > Query + TanStack Router.
 
-Dev: `pnpm --filter paygate-dashboard dev` → <http://localhost:5173>.
+Dev: `pnpm --filter limen-dashboard dev` → <http://localhost:5173>.
 
 ## Env
 
@@ -23,8 +23,8 @@ Dev: `pnpm --filter paygate-dashboard dev` → <http://localhost:5173>.
 ## Build
 
 ```bash
-pnpm --filter paygate-dashboard build
-pnpm --filter paygate-dashboard preview  # serve dist/
+pnpm --filter limen-dashboard build
+pnpm --filter limen-dashboard preview  # serve dist/
 ```
 
 Production image: [`Dockerfile`](./Dockerfile) (multi-stage, nginx).

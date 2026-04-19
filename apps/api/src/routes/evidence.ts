@@ -4,7 +4,7 @@ import { Hono } from 'hono';
 // services/evidence-service.ts.  This route is the public contract.
 export const evidenceRoutes = new Hono().get('/pack', (c) => {
   c.header('Content-Type', 'application/zip');
-  c.header('Content-Disposition', 'attachment; filename="paygate-evidence.zip"');
+  c.header('Content-Disposition', 'attachment; filename="limen-evidence.zip"');
   // Empty ZIP for now (PK\x05\x06 end-of-central-directory marker);
   // service layer will fill this with real entries.
   const emptyZip = new Uint8Array([

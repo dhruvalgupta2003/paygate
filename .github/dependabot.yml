@@ -46,14 +46,14 @@ updates:
           - "*"
 
   - package-ecosystem: npm
-    directory: "/packages/paygate-node"
+    directory: "/packages/limen-node"
     schedule:
       interval: weekly
       day: monday
     labels:
       - dependencies
       - npm
-      - paygate-node
+      - limen-node
     commit-message:
       prefix: chore(node-sdk)
       include: scope
@@ -85,10 +85,10 @@ updates:
       include: scope
 
   # -----------------------------------------------------------------------
-  # Python (pip) — packages/paygate-python
+  # Python (pip) — packages/limen-python
   # -----------------------------------------------------------------------
   - package-ecosystem: pip
-    directory: "/packages/paygate-python"
+    directory: "/packages/limen-python"
     schedule:
       interval: weekly
       day: monday
@@ -113,7 +113,7 @@ updates:
   # Docker base images
   # -----------------------------------------------------------------------
   - package-ecosystem: docker
-    directory: "/packages/paygate-node"
+    directory: "/packages/limen-node"
     schedule:
       interval: weekly
       day: monday
@@ -147,7 +147,7 @@ updates:
       prefix: chore(docker)
 
   - package-ecosystem: docker
-    directory: "/packages/paygate-python"
+    directory: "/packages/limen-python"
     schedule:
       interval: weekly
       day: monday

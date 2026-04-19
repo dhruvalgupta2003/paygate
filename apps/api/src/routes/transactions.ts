@@ -127,10 +127,10 @@ export const transactionsRoutes = new Hono()
     ),
     async (c) => {
       // Shared-secret bearer auth.  Set both sides' env to the same value.
-      const expected = process.env['PAYGATE_API_INGEST_TOKEN'];
+      const expected = process.env['LIMEN_API_INGEST_TOKEN'];
       if (!expected) {
         return c.json(
-          { error: 'INGEST_DISABLED', detail: 'set PAYGATE_API_INGEST_TOKEN on the API to enable proxy ingest' },
+          { error: 'INGEST_DISABLED', detail: 'set LIMEN_API_INGEST_TOKEN on the API to enable proxy ingest' },
           503,
         );
       }

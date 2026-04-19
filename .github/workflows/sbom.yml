@@ -58,22 +58,22 @@ jobs:
         run: |
           pnpm dlx @cyclonedx/cyclonedx-npm@latest \
             --output-format JSON \
-            --output-file paygate-node.cdx.json \
+            --output-file limen-node.cdx.json \
             --spec-version 1.5 \
             --package-lock-only false \
             --mc-type application \
-            packages/paygate-node/package.json
+            packages/limen-node/package.json
 
       - name: Attest SBOM provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: paygate-node.cdx.json
+          subject-path: limen-node.cdx.json
 
       - name: Upload SBOM to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
-          files: paygate-node.cdx.json
+          files: limen-node.cdx.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -88,7 +88,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/paygate-python
+        working-directory: packages/limen-python
 
     steps:
       - name: Checkout repository
@@ -111,19 +111,19 @@ jobs:
         run: |
           cyclonedx-py environment \
             --output-format JSON \
-            --output-file paygate-python.cdx.json \
+            --output-file limen-python.cdx.json \
             --schema-version 1.5
 
       - name: Attest SBOM provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: packages/paygate-python/paygate-python.cdx.json
+          subject-path: packages/limen-python/limen-python.cdx.json
 
       - name: Upload SBOM to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
-          files: packages/paygate-python/paygate-python.cdx.json
+          files: packages/limen-python/limen-python.cdx.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -167,25 +167,25 @@ jobs:
         run: |
           set -euo pipefail
           version="${TAG#v}"
-          image="ghcr.io/paygate/${{ matrix.image }}:${version}"
+          image="ghcr.io/limen/${{ matrix.image }}:${version}"
           echo "Generating SBOM for ${image}"
           syft "${image}" \
-            -o cyclonedx-json=paygate-${{ matrix.image }}-docker.cdx.json \
-            -o spdx-json=paygate-${{ matrix.image }}-docker.spdx.json
+            -o cyclonedx-json=limen-${{ matrix.image }}-docker.cdx.json \
+            -o spdx-json=limen-${{ matrix.image }}-docker.spdx.json
 
       - name: Attest SBOM provenance
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
-            paygate-${{ matrix.image }}-docker.cdx.json
-            paygate-${{ matrix.image }}-docker.spdx.json
+            limen-${{ matrix.image }}-docker.cdx.json
+            limen-${{ matrix.image }}-docker.spdx.json
 
       - name: Upload SBOM to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
           files: |
-            paygate-${{ matrix.image }}-docker.cdx.json
-            paygate-${{ matrix.image }}-docker.spdx.json
+            limen-${{ matrix.image }}-docker.cdx.json
+            limen-${{ matrix.image }}-docker.spdx.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

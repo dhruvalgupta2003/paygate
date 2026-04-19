@@ -1,7 +1,7 @@
 # Compliance
 
-PayGate is infrastructure, not a custodian. We don't hold user funds or
-provide financial services ourselves. That said, PayGate is designed so that
+Limen is infrastructure, not a custodian. We don't hold user funds or
+provide financial services ourselves. That said, Limen is designed so that
 **operators can meet their own compliance obligations** without bolting on a
 second vendor.
 
@@ -24,11 +24,11 @@ Nothing here is legal advice. Work with your counsel.
 ### What happens by default
 
 - When `compliance.sanctions_screening: true` (the default) and a payment
-  authorisation arrives, PayGate:
+  authorisation arrives, Limen:
   1. Extracts the `from_wallet` address.
   2. Checks the **local OFAC SDN snapshot** (crypto addresses).
   3. Optionally calls **Circle's sanctions API** (if
-     `PAYGATE_CIRCLE_API_KEY` is set) for additional coverage — Circle
+     `LIMEN_CIRCLE_API_KEY` is set) for additional coverage — Circle
      maintains their own screening list for USDC compliance.
   4. Returns `451 COMPLIANCE_BLOCKED` + `error: sanctions_match` if either
      source flags the address.
@@ -56,7 +56,7 @@ Nothing here is legal advice. Work with your counsel.
 ## 2. Travel rule
 
 FATF's travel rule requires VASPs to share originator/beneficiary info for
-transfers above a threshold (commonly $3,000 / €1,000). PayGate is not a
+transfers above a threshold (commonly $3,000 / €1,000). Limen is not a
 VASP — but if you are, you need this data.
 
 - `compliance.travel_rule_threshold_usd` (default `3000`) triggers an
@@ -76,27 +76,27 @@ VASP — but if you are, you need this data.
     }
     ```
 - Integrate this with your Travel Rule vendor (Notabene, Sumsub, TRP,
-  etc.). PayGate does not implement TRISA / IVMS-101 natively; the exported
+  etc.). Limen does not implement TRISA / IVMS-101 natively; the exported
   payload is designed to be trivial to transform.
 
 ---
 
 ## 3. Stablecoin regulation
 
-| Jurisdiction | Reg | Implication | PayGate handling |
+| Jurisdiction | Reg | Implication | Limen handling |
 |--------------|-----|-------------|------------------|
-| **US** | GENIUS Act (2025, proposed) | Payment stablecoins regulated federally | USDC is issued by Circle (registered); PayGate routes only; no holding |
-| **US (NYDFS)** | BitLicense / virtual currency | Same | Operator relationship with Circle, not PayGate |
-| **EU** | MiCA (Titles III / IV) | E-money token rules for USDC | USDC in the EU is issued by Circle's EU subsidiary; PayGate settles on-chain, no custody |
+| **US** | GENIUS Act (2025, proposed) | Payment stablecoins regulated federally | USDC is issued by Circle (registered); Limen routes only; no holding |
+| **US (NYDFS)** | BitLicense / virtual currency | Same | Operator relationship with Circle, not Limen |
+| **EU** | MiCA (Titles III / IV) | E-money token rules for USDC | USDC in the EU is issued by Circle's EU subsidiary; Limen settles on-chain, no custody |
 | **UK** | FSMA 2023 as amended | Similar to MiCA | As above |
 | **Japan** | Amended Payment Services Act | Prepaid/e-money rules | Coordinate with local issuer |
 | **Singapore** | PS Act 2019 | Digital payment token services | DPT operators need MAS licence if providing services |
 
-PayGate takes the position that:
+Limen takes the position that:
 
 - The operator's relationship with USDC issuers (Circle) is direct, not
-  through PayGate.
-- PayGate does not transmit money in the regulated sense — it verifies
+  through Limen.
+- Limen does not transmit money in the regulated sense — it verifies
   settlements the parties already executed on-chain.
 - Operators who fall within a MSB / VASP / CASP definition **must** follow
   their local rules; we give them the data.
@@ -109,16 +109,16 @@ PayGate takes the position that:
 
 - Wallet addresses are **pseudonymous identifiers**. In most jurisdictions
   they are personal data only when linked to an identifiable person.
-- By default PayGate stores: wallet addresses (hashed for analytics, raw
+- By default Limen stores: wallet addresses (hashed for analytics, raw
   for audit), endpoint paths (hashed if configured), amount, tx hash,
   timestamps.
-- PayGate does **not** store request bodies or response bodies unless the
+- Limen does **not** store request bodies or response bodies unless the
   operator explicitly enables `advanced.log_bodies: true` (not recommended
   outside debug).
 - Data-subject request workflow:
-  - `paygate dsr redact --wallet 0x...` tombstones the wallet in
+  - `limen dsr redact --wallet 0x...` tombstones the wallet in
     analytics while preserving aggregate totals via a rollup table.
-  - `paygate dsr export --wallet 0x...` produces a JSON dump of all rows.
+  - `limen dsr export --wallet 0x...` produces a JSON dump of all rows.
 
 ### Retention
 
@@ -130,7 +130,7 @@ PayGate takes the position that:
 
 ### Cross-border transfers
 
-- The hosted PayGate service runs in US + EU regions. Operators pick one
+- The hosted Limen service runs in US + EU regions. Operators pick one
   for data residency.
 - Self-hosted deployments: data stays where you deploy it.
 
@@ -138,7 +138,7 @@ PayGate takes the position that:
 
 ## 5. SOC 2 evidence pack
 
-PayGate generates the artefacts auditors look for:
+Limen generates the artefacts auditors look for:
 
 | Evidence | Source |
 |----------|--------|
@@ -151,18 +151,18 @@ PayGate generates the artefacts auditors look for:
 | Backup evidence | Postgres WAL backups; daily manifest hash |
 | User access reviews | Dashboard exports available monthly |
 
-Run `paygate evidence pack --out ./evidence.zip` to build a bundle for
+Run `limen evidence pack --out ./evidence.zip` to build a bundle for
 your auditor.
 
 ---
 
 ## 6. KYC / KYB posture
 
-- **PayGate does not KYC agents.** Agents are identified by wallet only.
+- **Limen does not KYC agents.** Agents are identified by wallet only.
 - **Operators may require KYC of their own customers** (e.g. B2B API
-  customers) outside PayGate. That's an application-layer concern.
+  customers) outside Limen. That's an application-layer concern.
 - **Operators running as VASPs** should integrate their KYC stack behind
-  PayGate (dashboards, access controls on receiving wallet changes, etc.).
+  Limen (dashboards, access controls on receiving wallet changes, etc.).
 
 ---
 
@@ -171,23 +171,23 @@ your auditor.
 - **Tamper-evident audit log**. Every critical action (config change,
   policy update, secret rotation, refund, override) writes a row to
   `audit_log` whose `chain_hash = SHA-256(prev_hash || serialize(row))`.
-- `paygate audit verify` re-derives the chain and reports any break.
+- `limen audit verify` re-derives the chain and reports any break.
 - Exports support NDJSON for SIEM ingestion (Splunk, Datadog, Elastic).
 
 ---
 
 ## 8. Refunds and disputes
 
-PayGate does not automatically refund. Refund workflows are
+Limen does not automatically refund. Refund workflows are
 operator-driven:
 
 1. Operator calls `POST /v1/refunds` with `tx_hash` + reason.
-2. PayGate validates the tx is ours, marks the row as `refund_requested`,
+2. Limen validates the tx is ours, marks the row as `refund_requested`,
    and emits `refund.requested` webhook.
 3. Operator triggers the on-chain refund (pushing USDC back to
    `from_wallet`). Operator records the refund tx via
    `POST /v1/refunds/:id/confirm`.
-4. PayGate marks the original transaction `refunded`.
+4. Limen marks the original transaction `refunded`.
 
 Chargeback-style pull refunds are not supported because x402 is push-only;
 the operator wallet must voluntarily push the refund.
@@ -196,7 +196,7 @@ the operator wallet must voluntarily push the refund.
 
 ## 9. Jurisdictional caveats
 
-We cannot operate in sanctioned jurisdictions. Hosted PayGate blocks
+We cannot operate in sanctioned jurisdictions. Hosted Limen blocks
 traffic from UN-sanctioned countries at the edge.
 
 Operators remain responsible for their own geographic restrictions via
@@ -206,6 +206,6 @@ Operators remain responsible for their own geographic restrictions via
 
 ## 10. Questions
 
-For compliance questions, email `compliance@paygate.dev`. For data-subject
+For compliance questions, email `compliance@limen.dev`. For data-subject
 requests on the hosted platform, use the in-dashboard DSR form or email
-`privacy@paygate.dev`.
+`privacy@limen.dev`.

@@ -12,7 +12,7 @@ bytecode_hash = "none"
 cbor_metadata = false
 fuzz = { runs = 1024 }
 invariant = { runs = 256, depth = 32 }
-gas_reports = ["PayGateReceipts"]
+gas_reports = ["LimenReceipts"]
 fs_permissions = [{ access = "read", path = "./" }]
 
 [fmt]
@@ -23,8 +23,8 @@ int_types = "preserve"
 func_attrs_with_params_multiline = false
 
 [rpc_endpoints]
-base      = "${PAYGATE_BASE_RPC_URL}"
-sepolia   = "${PAYGATE_BASE_SEPOLIA_RPC_URL}"
+base      = "${LIMEN_BASE_RPC_URL}"
+sepolia   = "${LIMEN_BASE_SEPOLIA_RPC_URL}"
 
 [etherscan]
 base    = { key = "${BASESCAN_KEY}", chain = 8453 }

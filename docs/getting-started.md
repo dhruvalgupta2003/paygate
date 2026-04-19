@@ -40,19 +40,19 @@ docker compose up redis postgres
 ## Node.js: Express
 
 ```bash
-npm install @paygate/node
+npm install @limen/node
 ```
 
 ```ts
 // server.ts
 import express from 'express';
-import { paygate } from '@paygate/node/express';
+import { limen } from '@limen/node/express';
 
 const app = express();
 
 app.use(
-  paygate({
-    wallets: { base: process.env.PAYGATE_WALLET_BASE! },
+  limen({
+    wallets: { base: process.env.LIMEN_WALLET_BASE! },
     endpoints: [
       { path: '/api/v1/weather/*', priceUsdc: '0.001' },
       { path: '/api/v1/premium/**', priceUsdc: '0.05' },
@@ -74,11 +74,11 @@ app.listen(3000);
 
 ```ts
 import Fastify from 'fastify';
-import { paygateFastify } from '@paygate/node/fastify';
+import { limenFastify } from '@limen/node/fastify';
 
 const app = Fastify();
-await app.register(paygateFastify, {
-  wallets: { base: process.env.PAYGATE_WALLET_BASE! },
+await app.register(limenFastify, {
+  wallets: { base: process.env.LIMEN_WALLET_BASE! },
   endpoints: [{ path: '/api/v1/*', priceUsdc: '0.001' }],
   redis: { url: process.env.REDIS_URL! },
 });
@@ -93,13 +93,13 @@ app.listen({ port: 3000 });
 
 ```ts
 import { Hono } from 'hono';
-import { paygateHono } from '@paygate/node/hono';
+import { limenHono } from '@limen/node/hono';
 
 const app = new Hono();
 app.use(
   '*',
-  paygateHono({
-    wallets: { base: process.env.PAYGATE_WALLET_BASE! },
+  limenHono({
+    wallets: { base: process.env.LIMEN_WALLET_BASE! },
     endpoints: [{ path: '/api/v1/*', priceUsdc: '0.001' }],
     redis: { url: process.env.REDIS_URL! },
   }),
@@ -115,10 +115,10 @@ export default app;
 
 ```ts
 // middleware.ts
-import { paygateEdge } from '@paygate/node/next';
+import { limenEdge } from '@limen/node/next';
 
-export const middleware = paygateEdge({
-  wallets: { base: process.env.PAYGATE_WALLET_BASE! },
+export const middleware = limenEdge({
+  wallets: { base: process.env.LIMEN_WALLET_BASE! },
   endpoints: [{ path: '/api/premium/*', priceUsdc: '0.05' }],
   redisRest: { url: process.env.UPSTASH_REDIS_URL!, token: process.env.UPSTASH_REDIS_TOKEN! },
 });
@@ -131,19 +131,19 @@ export const config = { matcher: ['/api/premium/:path*'] };
 ## Python: FastAPI
 
 ```bash
-pip install paygate
+pip install limen
 ```
 
 ```python
 # main.py
 import os
 from fastapi import FastAPI
-from paygate.fastapi import PayGateMiddleware
+from limen.fastapi import LimenMiddleware
 
 app = FastAPI()
 app.add_middleware(
-    PayGateMiddleware,
-    wallets={"base": os.environ["PAYGATE_WALLET_BASE"]},
+    LimenMiddleware,
+    wallets={"base": os.environ["LIMEN_WALLET_BASE"]},
     endpoints=[
         {"path": "/api/v1/weather/*", "price_usdc": "0.001"},
         {"path": "/api/v1/premium/**", "price_usdc": "0.05"},
@@ -164,12 +164,12 @@ Run: `uvicorn main:app --host 0.0.0.0 --port 3000`
 
 ```python
 from flask import Flask
-from paygate.flask import paygate_middleware
+from limen.flask import limen_middleware
 
 app = Flask(__name__)
-app.wsgi_app = paygate_middleware(
+app.wsgi_app = limen_middleware(
     app.wsgi_app,
-    wallets={"base": os.environ["PAYGATE_WALLET_BASE"]},
+    wallets={"base": os.environ["LIMEN_WALLET_BASE"]},
     endpoints=[{"path": "/api/v1/*", "price_usdc": "0.001"}],
     redis_url=os.environ["REDIS_URL"],
 )
@@ -186,12 +186,12 @@ def ping():
 ```python
 # settings.py
 MIDDLEWARE = [
-    "paygate.django.PayGateMiddleware",
+    "limen.django.LimenMiddleware",
     # ...
 ]
 
-PAYGATE = {
-    "wallets": {"base": os.environ["PAYGATE_WALLET_BASE"]},
+LIMEN = {
+    "wallets": {"base": os.environ["LIMEN_WALLET_BASE"]},
     "endpoints": [
         {"path": "/api/v1/*", "price_usdc": "0.001"},
     ],
@@ -205,7 +205,7 @@ PAYGATE = {
 
 ```bash
 # 1. Create a config file
-cat > paygate.config.yml <<EOF
+cat > limen.config.yml <<EOF
 version: 1
 wallets:
   base: "0xYourAddress"
@@ -217,8 +217,8 @@ endpoints:
 EOF
 
 # 2. Run the proxy in front of your API
-npx @paygate/node start \
-  --config paygate.config.yml \
+npx @limen/node start \
+  --config limen.config.yml \
   --upstream http://localhost:3000 \
   --port 4021
 ```
@@ -231,49 +231,49 @@ Your API is now x402-enabled at `http://localhost:4021`.
 
 ```bash
 docker run --rm -p 4021:4021 \
-  -v $(pwd)/paygate.config.yml:/app/paygate.config.yml:ro \
-  -e PAYGATE_UPSTREAM_URL=http://host.docker.internal:3000 \
-  -e PAYGATE_WALLET_BASE=0xYourAddress \
-  -e PAYGATE_REDIS_URL=redis://host.docker.internal:6379 \
-  ghcr.io/paygate/proxy:latest \
-  start --config /app/paygate.config.yml
+  -v $(pwd)/limen.config.yml:/app/limen.config.yml:ro \
+  -e LIMEN_UPSTREAM_URL=http://host.docker.internal:3000 \
+  -e LIMEN_WALLET_BASE=0xYourAddress \
+  -e LIMEN_REDIS_URL=redis://host.docker.internal:6379 \
+  ghcr.io/limen/proxy:latest \
+  start --config /app/limen.config.yml
 ```
 
 ---
 
 ## Kubernetes
 
-Sample Deployment + Service in `k8s/paygate.yaml` (in the repo). Key bits:
+Sample Deployment + Service in `k8s/limen.yaml` (in the repo). Key bits:
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
-metadata: { name: paygate-proxy }
+metadata: { name: limen-proxy }
 spec:
   replicas: 3
-  selector: { matchLabels: { app: paygate-proxy } }
+  selector: { matchLabels: { app: limen-proxy } }
   template:
-    metadata: { labels: { app: paygate-proxy } }
+    metadata: { labels: { app: limen-proxy } }
     spec:
       securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: proxy
-          image: ghcr.io/paygate/proxy:0.1.0
-          args: ["start", "--config", "/etc/paygate/paygate.config.yml"]
+          image: ghcr.io/limen/proxy:0.1.0
+          args: ["start", "--config", "/etc/limen/limen.config.yml"]
           env:
-            - name: PAYGATE_WALLET_BASE
-              valueFrom: { secretKeyRef: { name: paygate, key: wallet-base } }
-            - name: PAYGATE_REDIS_URL
-              valueFrom: { secretKeyRef: { name: paygate, key: redis-url } }
+            - name: LIMEN_WALLET_BASE
+              valueFrom: { secretKeyRef: { name: limen, key: wallet-base } }
+            - name: LIMEN_REDIS_URL
+              valueFrom: { secretKeyRef: { name: limen, key: redis-url } }
           volumeMounts:
-            - { name: cfg, mountPath: /etc/paygate, readOnly: true }
+            - { name: cfg, mountPath: /etc/limen, readOnly: true }
           ports:
             - { name: http, containerPort: 4021 }
             - { name: metrics, containerPort: 9464 }
           readinessProbe: { httpGet: { path: /readyz, port: http }, periodSeconds: 5 }
           livenessProbe:  { httpGet: { path: /livez,  port: http }, periodSeconds: 30 }
       volumes:
-        - { name: cfg, configMap: { name: paygate-config } }
+        - { name: cfg, configMap: { name: limen-config } }
 ```
 
 ---
@@ -285,7 +285,7 @@ spec:
 curl -i http://localhost:4021/api/v1/weather/sf
 
 # Run built-in doctor: checks chain RPC, redis, config, listening ports
-npx @paygate/node doctor
+npx @limen/node doctor
 ```
 
 ---

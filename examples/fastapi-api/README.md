@@ -1,12 +1,12 @@
-# PayGate Example — FastAPI
+# Limen Example — FastAPI
 
-FastAPI app protected by `paygate.fastapi.PayGateMiddleware`. Charges
+FastAPI app protected by `limen.fastapi.LimenMiddleware`. Charges
 **$0.001 USDC per call** on **Base Sepolia**.
 
 ## 3-step quickstart
 
 ```bash
-cp .env.example .env                    # fill PAYGATE_WALLET_BASE_SEPOLIA
+cp .env.example .env                    # fill LIMEN_WALLET_BASE_SEPOLIA
 docker compose up                       # redis + fastapi + optional proxy
 bash pay.sh                             # walk through the 402 -> sign -> retry
 ```
@@ -14,7 +14,7 @@ bash pay.sh                             # walk through the 402 -> sign -> retry
 Local without Docker:
 
 ```bash
-pip install -e ../../packages/paygate-python[fastapi]
+pip install -e ../../packages/limen-python[fastapi]
 pip install fastapi "uvicorn[standard]" redis
 python main.py
 ```

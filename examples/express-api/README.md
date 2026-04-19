@@ -1,12 +1,12 @@
-# PayGate Example — Express API
+# Limen Example — Express API
 
-Minimal Express app protected by the `@paygate/node/express` middleware.
+Minimal Express app protected by the `@limen/node/express` middleware.
 Charges **$0.001 USDC per call** on **Base Sepolia** (testnet).
 
 ## 3-step quickstart
 
 ```bash
-cp .env.example .env                       # fill PAYGATE_WALLET_BASE_SEPOLIA
+cp .env.example .env                       # fill LIMEN_WALLET_BASE_SEPOLIA
 docker compose up                          # redis + express + (optional) proxy sidecar
 bash pay.sh                                # walk through the 402 -> sign -> retry loop
 ```
@@ -15,7 +15,7 @@ Or run without Docker (requires a local Redis):
 
 ```bash
 pnpm install
-pnpm --filter paygate-example-express-api dev
+pnpm --filter limen-example-express-api dev
 ```
 
 ## Endpoints
@@ -43,7 +43,7 @@ with `X-PAYMENT`. See `pay.sh` for the full walkthrough and
 
 ## Files
 
-- `src/server.ts` — Express wiring with `paygate(...)` from `@paygate/node/express`.
-- `paygate.config.yml` — YAML config consumed by the sidecar proxy.
+- `src/server.ts` — Express wiring with `limen(...)` from `@limen/node/express`.
+- `limen.config.yml` — YAML config consumed by the sidecar proxy.
 - `docker-compose.yml` — redis + the Express app + an optional proxy sidecar.
-- `Dockerfile` — multi-stage build using the workspace `@paygate/node` package.
+- `Dockerfile` — multi-stage build using the workspace `@limen/node` package.

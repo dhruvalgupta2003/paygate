@@ -1,4 +1,4 @@
-# PayGate CI — lint, typecheck, unit + integration tests across Node and Python matrix.
+# Limen CI — lint, typecheck, unit + integration tests across Node and Python matrix.
 #
 # Note: action versions are tag-pinned here. A pre-1.0 hardening pass will
 # replace every `uses:` reference with a full commit SHA per SLSA L3 guidance.
@@ -27,7 +27,7 @@ env:
 
 jobs:
   # -----------------------------------------------------------------------
-  # Node matrix: builds + tests @paygate/node, @paygate/api, @paygate/dashboard
+  # Node matrix: builds + tests @limen/node, @limen/api, @limen/dashboard
   # -----------------------------------------------------------------------
   node:
     name: Node ${{ matrix.node }}
@@ -47,13 +47,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: paygate
-          POSTGRES_PASSWORD: paygate
-          POSTGRES_DB: paygate_test
+          POSTGRES_USER: limen
+          POSTGRES_PASSWORD: limen
+          POSTGRES_DB: limen_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U paygate"
+          --health-cmd "pg_isready -U limen"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -70,8 +70,8 @@ jobs:
 
     env:
       NODE_ENV: test
-      PAYGATE_REDIS_URL: redis://localhost:6379
-      PAYGATE_DATABASE_URL: postgres://paygate:paygate@localhost:5432/paygate_test
+      LIMEN_REDIS_URL: redis://localhost:6379
+      LIMEN_DATABASE_URL: postgres://limen:limen@localhost:5432/limen_test
       CI: "true"
 
     steps:
@@ -141,7 +141,7 @@ jobs:
           verbose: false
 
   # -----------------------------------------------------------------------
-  # Python matrix: builds + tests packages/paygate-python via hatch
+  # Python matrix: builds + tests packages/limen-python via hatch
   # -----------------------------------------------------------------------
   python:
     name: Python ${{ matrix.python }}
@@ -161,13 +161,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: paygate
-          POSTGRES_PASSWORD: paygate
-          POSTGRES_DB: paygate_test
+          POSTGRES_USER: limen
+          POSTGRES_PASSWORD: limen
+          POSTGRES_DB: limen_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U paygate"
+          --health-cmd "pg_isready -U limen"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -183,13 +183,13 @@ jobs:
           --health-retries 20
 
     env:
-      PAYGATE_REDIS_URL: redis://localhost:6379
-      PAYGATE_DATABASE_URL: postgres://paygate:paygate@localhost:5432/paygate_test
+      LIMEN_REDIS_URL: redis://localhost:6379
+      LIMEN_DATABASE_URL: postgres://limen:limen@localhost:5432/limen_test
       PYTHONUNBUFFERED: "1"
 
     defaults:
       run:
-        working-directory: packages/paygate-python
+        working-directory: packages/limen-python
 
     steps:
       - name: Checkout repository
@@ -227,7 +227,7 @@ jobs:
           use_oidc: true
           fail_ci_if_error: false
           flags: python
-          working-directory: packages/paygate-python
+          working-directory: packages/limen-python
           verbose: false
 
   # -----------------------------------------------------------------------

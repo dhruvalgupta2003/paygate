@@ -1,6 +1,6 @@
 # Solana integration
 
-PayGate supports Solana mainnet and devnet. This doc explains the specific
+Limen supports Solana mainnet and devnet. This doc explains the specific
 choices made for SPL USDC verification, finality, priority fees, and
 programs.
 
@@ -12,8 +12,8 @@ programs.
 - **Devnet mint:** `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`
 
 Always verify against the constants in
-`packages/paygate-node/src/chains/solana.ts` /
-`packages/paygate-python/paygate/chains/solana.py`. Do not take the mint
+`packages/limen-node/src/chains/solana.ts` /
+`packages/limen-python/limen/chains/solana.py`. Do not take the mint
 address from the payment authorisation — it could be spoofed.
 
 ---
@@ -34,12 +34,12 @@ address from the payment authorisation — it could be spoofed.
 }
 ```
 
-PayGate:
+Limen:
 
 1. Decodes the transaction.
 2. Verifies signatures (ed25519, via `@solana/web3.js`).
 3. Verifies **no** unauthorised writable accounts are touched (the tx
-   should only transfer the user's ATA → PayGate receiver's ATA + a memo).
+   should only transfer the user's ATA → Limen receiver's ATA + a memo).
 4. Verifies the `TokenProgram::transfer` (or `TransferChecked`)
    instruction:
    - source ATA derived from `owner = signer`, `mint = configured_mint`.
@@ -56,7 +56,7 @@ PayGate:
 
 - Default commitment: `confirmed` (≈400 ms after the block is processed by
   a supermajority of stake).
-- For payments ≥ `PAYGATE_SOLANA_FINALIZED_THRESHOLD_USD` (default 100), we
+- For payments ≥ `LIMEN_SOLANA_FINALIZED_THRESHOLD_USD` (default 100), we
   upgrade to `finalized` (~13 s). This is a tunable.
 - Reorg protection: Solana doesn't reorg past a single slot in practice,
   but we still verify block inclusion via `getTransaction(commitment)`.
@@ -65,7 +65,7 @@ PayGate:
 
 ## Priority fees
 
-Solana moves via priority fees. PayGate:
+Solana moves via priority fees. Limen:
 
 1. Samples `getRecentPrioritizationFees` over the last 50 slots.
 2. Picks the 75th percentile.
@@ -80,7 +80,7 @@ Tuning knob: `advanced.solana.priority_fee_percentile`.
 
 - The receiver ATA is derived deterministically from
   `getAssociatedTokenAddress(mint, receiver)`.
-- PayGate verifies the tx's destination ATA equals this derived address.
+- Limen verifies the tx's destination ATA equals this derived address.
 - If the receiver has no ATA yet, the tx must include a
   `createAssociatedTokenAccount` instruction. We count the ATA creation
   rent as part of the payment flow; the agent pays it, not the operator.
@@ -90,7 +90,7 @@ Tuning knob: `advanced.solana.priority_fee_percentile`.
 ## Address Lookup Tables (ALTs)
 
 - Optional. If the operator configures `advanced.solana.use_lookup_table:
-  true`, PayGate publishes a lookup table containing the operator's ATAs,
+  true`, Limen publishes a lookup table containing the operator's ATAs,
   the USDC mint, and the memo program. Versioned txs reference the ALT to
   compress addresses.
 - ALT ids and slots are listed in the dashboard.
@@ -135,7 +135,7 @@ Coinbase's edge.
 - Alchemy (Solana)
 - The public Solana Foundation RPC (dev only; rate-limited)
 
-Configure multiple via a comma-separated `PAYGATE_SOLANA_RPC_URL`. PayGate
+Configure multiple via a comma-separated `LIMEN_SOLANA_RPC_URL`. Limen
 round-robins with weighted health checks and a 30 s cooldown on 429 / 5xx.
 
 ---
@@ -146,7 +146,7 @@ round-robins with weighted health checks and a 30 s cooldown on 429 / 5xx.
    production. Pick at least two providers with SLAs.
 2. **Prefer facilitator mode for sub-1¢ endpoints.** The direct-RPC path
    is robust, but facilitator mode is cheaper when traffic is high.
-3. **Monitor slot lag.** `paygate_solana_slot_lag` tells you when your RPC
+3. **Monitor slot lag.** `limen_solana_slot_lag` tells you when your RPC
    falls behind; we alert at 30 slots.
 4. **Set `priority_fee_percentile` to 75 for typical traffic.** Increase to
    90 on busy days (check Solana fee dashboards).
@@ -165,4 +165,4 @@ round-robins with weighted health checks and a 30 s cooldown on 429 / 5xx.
 | `InstructionError: InvalidAccountData` | Wrong mint used | Ensure mint is canonical USDC |
 | `BlockhashNotFound` | tx too old | Agent must refresh blockhash within 150 slots |
 | `TransactionExpired` | agent built the tx too long ago | Reduce agent's sign-to-submit latency |
-| `ComputeBudgetExceeded` | too many instructions | Split into smaller txs (PayGate isn't affected; agent error) |
+| `ComputeBudgetExceeded` | too many instructions | Split into smaller txs (Limen isn't affected; agent error) |

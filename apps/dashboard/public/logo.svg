@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  PayGate primary mark.
+  Limen primary mark.
 
-  Concept: two monolithic posts (the gate) flanking a single square
-  stamp (the authorization). All three elements share the same 44-unit
-  module so the mark reads as a composed system, not a letter.
+  Concept: the threshold. Two horizontal beams stacked vertically with
+  generous negative space between them. The gap between the beams IS
+  the limen — the moment of crossing from one state to another. Top
+  beam is the lintel (thinner, restrained). Bottom block is the paid
+  domain (anchored, substantive). Together they describe a doorway
+  without drawing one.
 
-  Meaning: stand between an agent and an endpoint; refuse passage until
-  payment is stamped.
+  Construction: 256×256 grid. Two filled rectangles, single color,
+  no gradients, no filters. The proportions are deliberate:
+    top:    14 units tall (the lintel)
+    gap:    42 units (the limen — exactly 3× the lintel)
+    bottom: 24 units tall (anchored, substantive)
 
-  Construction: 256×256 grid. Three filled rectangles, single color,
-  no gradients, no filters.
-
-  Themes automatically via @media (prefers-color-scheme). Surfaces that
-  don't honor the query fall back to ink (safe on light paper).
+  Themes automatically via @media (prefers-color-scheme). Surfaces
+  that don't honor the query fall back to ink (safe on light paper).
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="PayGate">
-  <title>PayGate</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Limen">
+  <title>Limen</title>
   <style>
-    .pg-mark { fill: #0A0C10; }
+    .limen-mark { fill: #0A0A0C; }
     @media (prefers-color-scheme: dark) {
-      .pg-mark { fill: #F5F1E8; }
+      .limen-mark { fill: #F7F5EF; }
     }
   </style>
-  <g class="pg-mark">
-    <rect x="44"  y="32"  width="44" height="192" rx="3"/>
-    <rect x="168" y="32"  width="44" height="192" rx="3"/>
-    <rect x="106" y="106" width="44" height="44"  rx="3"/>
+  <g class="limen-mark">
+    <rect x="48" y="88"  width="160" height="14" rx="2"/>
+    <rect x="48" y="144" width="160" height="24" rx="2"/>
   </g>
 </svg>

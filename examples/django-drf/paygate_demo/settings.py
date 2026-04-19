@@ -17,17 +17,17 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "paygate.django.PayGateMiddleware",
+    "limen.django.LimenMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
 
-ROOT_URLCONF = "paygate_demo.urls"
-WSGI_APPLICATION = "paygate_demo.wsgi.application"
+ROOT_URLCONF = "limen_demo.urls"
+WSGI_APPLICATION = "limen_demo.wsgi.application"
 
-PAYGATE = {
+LIMEN = {
     "wallets": {
         "base-sepolia": os.environ.get(
-            "PAYGATE_WALLET_BASE_SEPOLIA",
+            "LIMEN_WALLET_BASE_SEPOLIA",
             "0x0000000000000000000000000000000000000001",
         ),
     },

@@ -22,26 +22,26 @@
   }
 
   body {
-    background: var(--pg-canvas);
-    color: var(--pg-ink);
+    background: var(--limen-canvas);
+    color: var(--limen-ink);
   }
 
   /* Intentional focus ring: 1px outline + 4px offset tint.
-     Not browser default — tuned to match PayGate indigo. */
+     Not browser default — tuned to match Limen indigo. */
   :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 2px solid var(--pg-indigo-500);
+    outline: 2px solid var(--limen-indigo-500);
     outline-offset: 2px;
-    border-radius: var(--pg-radius-sm);
+    border-radius: var(--limen-radius-sm);
   }
 
   ::selection {
     background: rgba(79, 70, 229, 0.2);
-    color: var(--pg-ink);
+    color: var(--limen-ink);
   }
 
   .dark ::selection {
     background: rgba(124, 130, 247, 0.35);
-    color: var(--pg-ink);
+    color: var(--limen-ink);
   }
 
   /* Scrollbars (webkit) kept quiet. */
@@ -79,24 +79,24 @@
 @layer components {
   .pg-card {
     position: relative;
-    background: var(--pg-canvas-raised);
-    border: 1px solid var(--pg-line);
-    border-radius: var(--pg-radius-lg);
+    background: var(--limen-canvas-raised);
+    border: 1px solid var(--limen-line);
+    border-radius: var(--limen-radius-lg);
     transition:
-      border-color var(--pg-duration) var(--pg-ease),
-      box-shadow var(--pg-duration) var(--pg-ease),
-      transform var(--pg-duration) var(--pg-ease);
+      border-color var(--limen-duration) var(--limen-ease),
+      box-shadow var(--limen-duration) var(--limen-ease),
+      transform var(--limen-duration) var(--limen-ease);
   }
 
   .pg-card--interactive:hover {
-    border-color: var(--pg-line-brand);
+    border-color: var(--limen-line-brand);
     box-shadow:
-      0 0 0 1px var(--pg-line-brand),
+      0 0 0 1px var(--limen-line-brand),
       0 12px 36px -18px rgba(79, 70, 229, 0.2);
   }
 
   .pg-hairline {
-    border-bottom: 1px solid var(--pg-line);
+    border-bottom: 1px solid var(--limen-line);
   }
 
   .pg-chip {
@@ -127,8 +127,8 @@
 
   .pg-chip--neutral {
     background: rgba(11, 10, 26, 0.05);
-    color: var(--pg-ink-muted);
-    border-color: var(--pg-line);
+    color: var(--limen-ink-muted);
+    border-color: var(--limen-line);
   }
 
   .dark .pg-chip--up {
@@ -141,7 +141,7 @@
 
   .dark .pg-chip--neutral {
     background: rgba(255, 255, 255, 0.05);
-    color: var(--pg-ink-2);
+    color: var(--limen-ink-2);
   }
 
   /* soft gradient flow background. */
@@ -181,7 +181,7 @@
     height: 16px;
     pointer-events: none;
     z-index: 2;
-    background: linear-gradient(to bottom, var(--pg-canvas) 0%, transparent 100%);
+    background: linear-gradient(to bottom, var(--limen-canvas) 0%, transparent 100%);
   }
 
   .pg-mask-fade-right {

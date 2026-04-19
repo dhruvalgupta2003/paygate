@@ -1,7 +1,7 @@
 # Webhooks
 
-PayGate signs every webhook with HMAC-SHA256. Signatures live in the
-`X-PayGate-Signature` header and cover the raw body + timestamp, mitigating
+Limen signs every webhook with HMAC-SHA256. Signatures live in the
+`X-Limen-Signature` header and cover the raw body + timestamp, mitigating
 replay attacks.
 
 ---
@@ -25,13 +25,13 @@ replay attacks.
 ## Envelope
 
 ```http
-POST https://example.com/paygate/webhook
+POST https://example.com/limen/webhook
 Content-Type: application/json
-X-PayGate-Id: 01J2E3F4C5K6P7Q8R9S0T1U2V3
-X-PayGate-Event: payment.settled
-X-PayGate-Signature: t=1718640012,v1=3f1d...
-X-PayGate-Attempt: 1
-User-Agent: PayGate-Webhook/1.0 (+https://paygate.dev)
+X-Limen-Id: 01J2E3F4C5K6P7Q8R9S0T1U2V3
+X-Limen-Event: payment.settled
+X-Limen-Signature: t=1718640012,v1=3f1d...
+X-Limen-Attempt: 1
+User-Agent: Limen-Webhook/1.0 (+https://limen.dev)
 
 {
   "id": "01J2E3F4C5K6P7Q8R9S0T1U2V3",
@@ -103,9 +103,9 @@ def verify_webhook(header_value: str, raw_body: bytes, secret: bytes) -> None:
 
 ## Idempotency
 
-- `X-PayGate-Id` is stable across retries. Persist it and use it to
+- `X-Limen-Id` is stable across retries. Persist it and use it to
   deduplicate processing.
-- Signature rotation: `POST /_paygate/v1/webhooks/{id}/rotate` — returns
+- Signature rotation: `POST /_limen/v1/webhooks/{id}/rotate` — returns
   the new secret. Old secret accepted for 10 min overlap.
 
 ---
@@ -114,8 +114,8 @@ def verify_webhook(header_value: str, raw_body: bytes, secret: bytes) -> None:
 
 ```bash
 # Generate a signing secret
-paygate keys generate-webhook-secret
+limen keys generate-webhook-secret
 
 # Simulate a payment.settled event
-paygate webhooks simulate --event payment.settled --url http://localhost:3001/hook
+limen webhooks simulate --event payment.settled --url http://localhost:3001/hook
 ```

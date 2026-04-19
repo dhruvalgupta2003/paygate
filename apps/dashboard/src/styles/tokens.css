@@ -1,94 +1,117 @@
 /*
- * PayGate design tokens.
+ * Limen design tokens.
  *
- * The palette, scale, and motion primitives referenced throughout the dashboard.
- * Source of truth: src/lib/theme.ts. Tailwind config mirrors these values.
+ * Brand principles:
+ *  · Restraint over flash. Premium reads as confidence.
+ *  · Warm ink on warm paper — architectural, not tech-template.
+ *  · One brand axis (cobalt). One value-flow accent (copper).
+ *  · Generous negative space. The limen lives in the gap.
+ *
+ * Source of truth for the dashboard. tailwind.config mirrors these.
  */
 
 :root {
-  /* brand */
-  --pg-indigo-50: #eef1ff;
-  --pg-indigo-100: #e0e5ff;
-  --pg-indigo-200: #c3cdff;
-  --pg-indigo-300: #9cadff;
-  --pg-indigo-400: #7486f7;
-  --pg-indigo-500: #4f46e5;
-  --pg-indigo-600: #3f37c6;
-  --pg-indigo-700: #312e81;
-  --pg-indigo-900: #1e1b4b;
+  /* brand · cobalt — depth, threshold, sky-blue-going-dark */
+  --limen-cobalt-50:  #eef3fc;
+  --limen-cobalt-100: #d8e3f9;
+  --limen-cobalt-200: #b1c5f0;
+  --limen-cobalt-300: #7d9fdf;
+  --limen-cobalt-400: #4f7ac9;
+  --limen-cobalt-500: #2856b3;  /* primary brand */
+  --limen-cobalt-600: #1f4396;
+  --limen-cobalt-700: #1a3676;
+  --limen-cobalt-900: #0f1f49;
 
-  --pg-violet-500: #8b5cf6;
-  --pg-violet-600: #6d28d9;
-  --pg-violet-700: #5b21b6;
+  /* legacy indigo aliases — kept as cobalt for component compat */
+  --limen-indigo-50:  var(--limen-cobalt-50);
+  --limen-indigo-100: var(--limen-cobalt-100);
+  --limen-indigo-200: var(--limen-cobalt-200);
+  --limen-indigo-300: var(--limen-cobalt-300);
+  --limen-indigo-400: var(--limen-cobalt-400);
+  --limen-indigo-500: var(--limen-cobalt-500);
+  --limen-indigo-600: var(--limen-cobalt-600);
+  --limen-indigo-700: var(--limen-cobalt-700);
+  --limen-indigo-900: var(--limen-cobalt-900);
 
-  --pg-flow-cyan: #22d3ee;
-  --pg-flow-mint: #10b981;
+  /* accent · copper — value moving across the threshold */
+  --limen-copper-500: #b86e3c;
+  --limen-copper-600: #94572f;
+  --limen-copper-700: #6f4124;
 
-  /* ink */
-  --pg-ink: #0b0a1a;
-  --pg-ink-2: #1a1830;
-  --pg-ink-3: #2c2946;
-  --pg-ink-muted: #6b6b8a;
-  --pg-ink-soft: #8a8aa8;
+  /* legacy violet aliases — remapped to copper */
+  --limen-violet-500: var(--limen-copper-500);
+  --limen-violet-600: var(--limen-copper-600);
+  --limen-violet-700: var(--limen-copper-700);
 
-  /* paper */
-  --pg-paper: #f8fafc;
-  --pg-paper-2: #edeaf7;
-  --pg-paper-3: #e2def2;
+  /* flow · subtle, never neon */
+  --limen-flow-cyan: #06b6d4;
+  --limen-flow-mint: #059669;
 
-  /* canvas (light mode) */
-  --pg-canvas: #fdfdff;
-  --pg-canvas-raised: #ffffff;
-  --pg-canvas-sunken: #f4f5fb;
+  /* ink · cool near-black with a faint blue undertone */
+  --limen-ink:       #0a0a0c;
+  --limen-ink-2:     #1a1a22;
+  --limen-ink-3:     #2c2c38;
+  --limen-ink-muted: #6b6b7a;
+  --limen-ink-soft:  #9090a0;
+
+  /* paper · warm cream, distinctive vs cool-white SaaS template */
+  --limen-paper:   #faf6ee;
+  --limen-paper-2: #f4ede0;
+  --limen-paper-3: #ede4d2;
+
+  /* canvas (light) */
+  --limen-canvas:        #fdfaf3;
+  --limen-canvas-raised: #ffffff;
+  --limen-canvas-sunken: #f5efe1;
 
   /* semantic */
-  --pg-success: #10b981;
-  --pg-warn: #f59e0b;
-  --pg-danger: #ef4444;
-  --pg-info: #3b82f6;
+  --limen-success: #059669;
+  --limen-warn:    #d97706;
+  --limen-danger:  #dc2626;
+  --limen-info:    #2563eb;
 
   /* hairlines */
-  --pg-line: rgba(11, 10, 26, 0.08);
-  --pg-line-strong: rgba(11, 10, 26, 0.14);
-  --pg-line-brand: rgba(79, 70, 229, 0.2);
+  --limen-line:        rgba(10, 10, 12, 0.07);
+  --limen-line-strong: rgba(10, 10, 12, 0.13);
+  --limen-line-brand:  rgba(40, 86, 179, 0.18);
 
   /* motion */
-  --pg-duration-fast: 120ms;
-  --pg-duration: 220ms;
-  --pg-duration-slow: 420ms;
-  --pg-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --limen-duration-fast: 120ms;
+  --limen-duration:      220ms;
+  --limen-duration-slow: 420ms;
+  --limen-ease:          cubic-bezier(0.16, 1, 0.3, 1);
 
   /* rhythm */
-  --pg-radius-xs: 4px;
-  --pg-radius-sm: 6px;
-  --pg-radius-md: 10px;
-  --pg-radius-lg: 14px;
-  --pg-radius-xl: 20px;
-  --pg-radius-2xl: 28px;
+  --limen-radius-xs:  4px;
+  --limen-radius-sm:  6px;
+  --limen-radius-md:  10px;
+  --limen-radius-lg:  14px;
+  --limen-radius-xl:  20px;
+  --limen-radius-2xl: 28px;
 
   /* layout */
-  --pg-nav-width: 248px;
-  --pg-nav-width-collapsed: 72px;
-  --pg-topbar-height: 60px;
-  --pg-content-max: 1680px;
+  --limen-nav-width:           248px;
+  --limen-nav-width-collapsed: 72px;
+  --limen-topbar-height:       60px;
+  --limen-content-max:         1680px;
 }
 
-/* Dark mode overrides. Activated by `.dark` on <html>. */
+/* Dark mode — bone on ink. Activated by `.dark` on <html>. */
 .dark {
-  --pg-canvas: #0b0a1a;
-  --pg-canvas-raised: #12112a;
-  --pg-canvas-sunken: #08071a;
-  --pg-paper: #12112a;
-  --pg-paper-2: #1a1830;
-  --pg-paper-3: #2c2946;
+  --limen-canvas:        #0a0a0c;
+  --limen-canvas-raised: #14141a;
+  --limen-canvas-sunken: #050507;
+  --limen-paper:         #14141a;
+  --limen-paper-2:       #1f1f28;
+  --limen-paper-3:       #2c2c38;
 
-  --pg-ink: #f0eefa;
-  --pg-ink-2: #c6c2e2;
-  --pg-ink-3: #9b98bf;
-  --pg-ink-muted: #7d7aa8;
-  --pg-ink-soft: #555275;
+  --limen-ink:       #f7f5ef;
+  --limen-ink-2:     #d4d2c8;
+  --limen-ink-3:     #a09e94;
+  --limen-ink-muted: #74726a;
+  --limen-ink-soft:  #4a4844;
 
-  --pg-line: rgba(255, 255, 255, 0.08);
-  --pg-line-strong: rgba(255, 255, 255, 0.16);
-  --pg-line-brand: rgba(124, 130, 247, 0.35);
+  --limen-line:        rgba(247, 245, 239, 0.08);
+  --limen-line-strong: rgba(247, 245, 239, 0.16);
+  --limen-line-brand:  rgba(125, 159, 223, 0.32);
 }

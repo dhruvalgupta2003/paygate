@@ -1,9 +1,9 @@
 # Payment flow
 
-End-to-end walkthrough of a single paid request through PayGate.
+End-to-end walkthrough of a single paid request through Limen.
 
 ```
-agent                 paygate                 chain / facilitator              upstream
+agent                 limen                 chain / facilitator              upstream
  │                      │                              │                            │
  │  GET /api/…          │                              │                            │
  ├─────────────────────▶│                              │                            │
@@ -47,7 +47,7 @@ User-Agent: my-agent/0.1
 Accept: application/json
 ```
 
-### PayGate
+### Limen
 
 Matches `path:/api/v1/weather/*`, price `0.001 USDC`, chain `base`.
 
@@ -80,8 +80,8 @@ Cache-Control: no-store
 
 Redis:
 
-- `SET paygate:nonce:01J2E3F4C5K6P7Q8R9S0T1U2V3 digest EX 305 NX` → OK
-- `SET paygate:req:01J… json(PaymentRequirements) EX 305 NX`
+- `SET limen:nonce:01J2E3F4C5K6P7Q8R9S0T1U2V3 digest EX 305 NX` → OK
+- `SET limen:req:01J… json(PaymentRequirements) EX 305 NX`
 
 ---
 
@@ -100,7 +100,7 @@ Content-Type: application/json
 ```
 
 Facilitator returns either `{"ok": true}` or details on failure.
-Agent then POSTs `/settle` to finalise, or PayGate does it from
+Agent then POSTs `/settle` to finalise, or Limen does it from
 the request path once it trusts `verify`.
 
 ### Option B — direct mode
@@ -138,7 +138,7 @@ GET /api/v1/weather/sf HTTP/1.1
 X-PAYMENT: eyJ2IjoiMSIsImNoYWluIjoiYmFzZSIsInNjaGVtZSI6ImV4YWN0Iiwibm9uY2Ui…
 ```
 
-### PayGate
+### Limen
 
 ```
 1. Header decoded → PaymentAuth struct.
@@ -181,7 +181,7 @@ Cache-Control: private, max-age=0
 If the agent retries with the **same** `X-PAYMENT` header within the
 idempotency window (default 5 min):
 
-- PayGate returns the cached response from Redis with
+- Limen returns the cached response from Redis with
   `Idempotency-Status: replayed`.
 - No second chain verification, no second upstream call.
 
@@ -208,8 +208,8 @@ Agents should parse `error` (stable enum) and surface `detail` for humans.
 
 ## 6. Partial success
 
-PayGate settles **before** calling the upstream. If the upstream fails
-(`5xx`), PayGate:
+Limen settles **before** calling the upstream. If the upstream fails
+(`5xx`), Limen:
 
 1. Marks the transaction `upstream_failed`.
 2. Returns `502 UPSTREAM_FAILED` to the agent.
@@ -217,14 +217,14 @@ PayGate settles **before** calling the upstream. If the upstream fails
 4. Triggers an operator-defined remediation (auto-refund, retry, or
    manual).
 
-This is intentional: the agent has already settled, so PayGate owes them a
+This is intentional: the agent has already settled, so Limen owes them a
 response. Operators choose whether to automate refunds.
 
 ---
 
 ## 7. Timeouts and deadlines
 
-- Client → PayGate request: up to `advanced.upstream_timeout_ms +
+- Client → Limen request: up to `advanced.upstream_timeout_ms +
   advanced.verifier_timeout_ms + 2 s`.
 - Verifier hard deadline: 4 s. Beyond this, return `SETTLEMENT_PENDING
   (202)` and keep the connection alive only if `Prefer: wait=600` is set.

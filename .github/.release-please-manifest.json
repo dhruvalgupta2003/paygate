@@ -1,7 +1,7 @@
 {
   ".": "0.1.0",
-  "packages/paygate-node": "0.1.0",
-  "packages/paygate-python": "0.1.0",
+  "packages/limen-node": "0.1.0",
+  "packages/limen-python": "0.1.0",
   "apps/api": "0.1.0",
   "apps/dashboard": "0.1.0"
 }

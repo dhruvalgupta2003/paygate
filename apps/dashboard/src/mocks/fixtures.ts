@@ -225,7 +225,7 @@ export const MOCK_AGENTS: Agent[] = (() => {
 export const MOCK_WEBHOOKS: Webhook[] = [
   {
     id: 'hk_ops_prod',
-    url: 'https://ops.example.com/paygate/hook',
+    url: 'https://ops.example.com/limen/hook',
     events: ['payment.settled', 'compliance.blocked'],
     secret_last4: 'a3c1',
     created_at: faker.date.past({ years: 0.2 }).toISOString(),
@@ -235,7 +235,7 @@ export const MOCK_WEBHOOKS: Webhook[] = [
   },
   {
     id: 'hk_analytics',
-    url: 'https://analytics.example.com/ingest/paygate',
+    url: 'https://analytics.example.com/ingest/limen',
     events: ['payment.settled', 'payment.refunded', 'payment.reorged'],
     secret_last4: '02ef',
     created_at: faker.date.past({ years: 0.1 }).toISOString(),
@@ -245,7 +245,7 @@ export const MOCK_WEBHOOKS: Webhook[] = [
   },
   {
     id: 'hk_audit_s3',
-    url: 'https://s3.us-east-1.amazonaws.com/ops-audit/paygate',
+    url: 'https://s3.us-east-1.amazonaws.com/ops-audit/limen',
     events: ['audit.appended'],
     secret_last4: '91ba',
     created_at: faker.date.past({ years: 0.05 }).toISOString(),
@@ -347,12 +347,12 @@ export const MOCK_AUDIT_LOG: AuditLogEntry[] = Array.from({ length: 140 }, (_, i
 
 export const MOCK_DIRECTORY: DirectoryListing = {
   project: {
-    slug: 'paygate-demo',
-    name: 'PayGate Demo APIs',
+    slug: 'limen-demo',
+    name: 'Limen Demo APIs',
     description:
-      'Reference collection of x402-monetised APIs powered by PayGate. Weather, geocode, embeddings, and premium research.',
+      'Reference collection of x402-monetised APIs powered by Limen. Weather, geocode, embeddings, and premium research.',
     category: 'Data',
-    homepage: 'https://paygate.dev/demo',
+    homepage: 'https://limen.dev/demo',
     logo_url: '/logo.svg',
     tags: ['data', 'llm', 'markets'],
   },

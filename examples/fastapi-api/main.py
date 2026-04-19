@@ -1,10 +1,10 @@
-"""PayGate Example — FastAPI.
+"""Limen Example — FastAPI.
 
-Drops the ``PayGateMiddleware`` into a FastAPI app and charges $0.001 USDC
+Drops the ``LimenMiddleware`` into a FastAPI app and charges $0.001 USDC
 per call on Base Sepolia. Mirrors ``examples/express-api`` route-for-route.
 
 Run:
-    export PAYGATE_WALLET_BASE_SEPOLIA=0xYourReceivingAddress
+    export LIMEN_WALLET_BASE_SEPOLIA=0xYourReceivingAddress
     export REDIS_URL=redis://127.0.0.1:6379
     uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 """
@@ -15,23 +15,23 @@ import os
 from dataclasses import dataclass
 
 from fastapi import FastAPI, HTTPException
-from paygate.fastapi import PayGateMiddleware  # type: ignore[import-not-found]  # Optional dep, see pyproject.toml extras.
+from limen.fastapi import LimenMiddleware  # type: ignore[import-not-found]  # Optional dep, see pyproject.toml extras.
 from pydantic import BaseModel, Field
 
 PORT: int = int(os.environ.get("PORT", "3000"))
 
-RECEIVING_WALLET: str | None = os.environ.get("PAYGATE_WALLET_BASE_SEPOLIA")
+RECEIVING_WALLET: str | None = os.environ.get("LIMEN_WALLET_BASE_SEPOLIA")
 if not RECEIVING_WALLET:
     raise RuntimeError(
-        "PAYGATE_WALLET_BASE_SEPOLIA is required (testnet receive-only address)."
+        "LIMEN_WALLET_BASE_SEPOLIA is required (testnet receive-only address)."
     )
 
 REDIS_URL: str = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
 
-app = FastAPI(title="paygate-example-fastapi", version="0.1.0")
+app = FastAPI(title="limen-example-fastapi", version="0.1.0")
 
 app.add_middleware(
-    PayGateMiddleware,
+    LimenMiddleware,
     wallets={"base": RECEIVING_WALLET},
     defaults={
         "chain": "base-sepolia",

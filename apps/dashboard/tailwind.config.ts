@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss';
 
 /**
- * PayGate dashboard Tailwind config.
+ * Limen dashboard Tailwind config.
  *
  * Design tokens live in `src/lib/theme.ts`. This file mirrors the token values
  * so JIT purging works against the class strings; keep the two in sync.

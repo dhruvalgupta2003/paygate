@@ -1,5 +1,5 @@
-# Publish multi-arch Docker images to ghcr.io/paygate/*
-# - proxy (packages/paygate-node)
+# Publish multi-arch Docker images to ghcr.io/limen/*
+# - proxy (packages/limen-node)
 # - api (apps/api)
 # - dashboard (apps/dashboard)
 #
@@ -32,7 +32,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  OWNER: paygate
+  OWNER: limen
 
 jobs:
   build-and-push:
@@ -50,7 +50,7 @@ jobs:
       matrix:
         image:
           - name: proxy
-            dockerfile: packages/paygate-node/Dockerfile
+            dockerfile: packages/limen-node/Dockerfile
             context: .
           - name: api
             dockerfile: apps/api/Dockerfile
@@ -95,11 +95,11 @@ jobs:
             type=raw,value=latest,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
             type=raw,value=${{ inputs.tag }},enable=${{ inputs.tag != '' }}
           labels: |
-            org.opencontainers.image.title=paygate-${{ matrix.image.name }}
-            org.opencontainers.image.source=https://github.com/paygate/paygate
-            org.opencontainers.image.url=https://paygate.dev
+            org.opencontainers.image.title=limen-${{ matrix.image.name }}
+            org.opencontainers.image.source=https://github.com/limen/limen
+            org.opencontainers.image.url=https://limen.dev
             org.opencontainers.image.licenses=MIT
-            org.opencontainers.image.vendor=PayGate
+            org.opencontainers.image.vendor=Limen
 
       - name: Build and push
         id: build

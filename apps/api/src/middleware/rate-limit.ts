@@ -2,15 +2,15 @@ import type { MiddlewareHandler } from 'hono';
 import Redis from 'ioredis';
 import { getEnv } from '../config/env.js';
 import { getLogger } from '../lib/logger.js';
-import { ErrorCode, PayGateError } from '../lib/errors.js';
+import { ErrorCode, LimenError } from '../lib/errors.js';
 import { metrics } from '../lib/metrics.js';
 
 /**
  * Token-bucket-ish fixed-window rate limiter backed by Redis.
  *
  * Two windows per key:
- *   - perSecond  : fails with RATE_LIMITED if > env.PAYGATE_API_RATE_LIMIT_PER_SECOND
- *   - perMinute  : fails with RATE_LIMITED if > env.PAYGATE_API_RATE_LIMIT_PER_MINUTE
+ *   - perSecond  : fails with RATE_LIMITED if > env.LIMEN_API_RATE_LIMIT_PER_SECOND
+ *   - perMinute  : fails with RATE_LIMITED if > env.LIMEN_API_RATE_LIMIT_PER_MINUTE
  *
  * Key derivation: prefer admin pubkey or JWT subject (set by auth
  * middleware).  Fall back to IP + path for unauth paths (health/metrics).
@@ -24,7 +24,7 @@ let failOpenUntil = 0;
 function getRedis(): Redis {
   if (redisClient !== undefined) return redisClient;
   const env = getEnv();
-  redisClient = new Redis(env.PAYGATE_REDIS_URL, {
+  redisClient = new Redis(env.LIMEN_REDIS_URL, {
     maxRetriesPerRequest: 2,
     enableOfflineQueue: false,
     connectTimeout: 2000,
@@ -56,8 +56,8 @@ export interface RateLimitOptions {
 export function rateLimitMiddleware(opts: RateLimitOptions = {}): MiddlewareHandler {
   return async (c, next) => {
     const env = getEnv();
-    const perSecond = opts.perSecond ?? env.PAYGATE_API_RATE_LIMIT_PER_SECOND;
-    const perMinute = opts.perMinute ?? env.PAYGATE_API_RATE_LIMIT_PER_MINUTE;
+    const perSecond = opts.perSecond ?? env.LIMEN_API_RATE_LIMIT_PER_SECOND;
+    const perMinute = opts.perMinute ?? env.LIMEN_API_RATE_LIMIT_PER_MINUTE;
     const key = (opts.keyFn ?? defaultKeyFn)(c);
     const route = c.req.routePath ?? c.req.path;
 
@@ -90,7 +90,7 @@ export function rateLimitMiddleware(opts: RateLimitOptions = {}): MiddlewareHand
         await next();
         return;
       }
-      throw new PayGateError({
+      throw new LimenError({
         code: ErrorCode.SERVICE_DEGRADED,
         detail: 'rate limiter unavailable',
       });
@@ -102,7 +102,7 @@ export function rateLimitMiddleware(opts: RateLimitOptions = {}): MiddlewareHand
       metrics.rateLimitDropsTotal.labels(route).inc();
       const retryAfterMs = sec > perSecond ? 1000 : 60_000;
       c.header('Retry-After', String(Math.ceil(retryAfterMs / 1000)));
-      throw new PayGateError({
+      throw new LimenError({
         code: ErrorCode.RATE_LIMITED,
         detail: `rate limit exceeded (perSecond=${perSecond}, perMinute=${perMinute})`,
         retryAfterMs,

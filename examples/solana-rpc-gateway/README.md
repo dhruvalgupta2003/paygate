@@ -2,13 +2,13 @@
 
 A thin Hono server that fronts `api.mainnet-beta.solana.com` (or your
 private RPC) and charges **$0.00025** per call. Demonstrates how to
-compose PayGate in front of a third-party upstream.
+compose Limen in front of a third-party upstream.
 
 ## Run
 
 ```bash
 cp .env.example .env
-# Set PAYGATE_WALLET_SOLANA=<your devnet address>
+# Set LIMEN_WALLET_SOLANA=<your devnet address>
 pnpm install
 pnpm dev
 ```
@@ -34,7 +34,7 @@ a paid RPC plan at $0.00025 / call means:
 
 ## Config
 
-See [`paygate.config.yml`](./paygate.config.yml).
+See [`limen.config.yml`](./limen.config.yml).
 
 ## License
 

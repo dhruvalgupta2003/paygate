@@ -18,6 +18,7 @@ function TransactionsRoute() {
     ...(chain !== 'all' ? { chain } : {}),
     ...(status !== 'all' ? { status } : {}),
   });
+  const items = txs.data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
     <>
@@ -62,7 +63,7 @@ function TransactionsRoute() {
             </tr>
           </thead>
           <tbody>
-            {(txs.data?.items ?? []).map((t) => (
+            {items.map((t) => (
               <tr
                 key={t.id}
                 onClick={() => setSelected(t.id)}
@@ -88,7 +89,7 @@ function TransactionsRoute() {
                 </td>
               </tr>
             ))}
-            {(txs.data?.items ?? []).length === 0 ? (
+            {items.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-16 text-center text-sm text-ink-500">
                   No transactions yet. Settle your first 402 to populate this view.

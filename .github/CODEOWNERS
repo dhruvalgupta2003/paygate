@@ -1,62 +1,62 @@
-# PayGate code ownership.
+# Limen code ownership.
 #
 # Lines use `<pattern> <owner1> <owner2> ...`. The last matching pattern wins.
 # See AGENTS.md § 1 rule 3 and SECURITY.md — verification paths require a
-# second reviewer from @paygate/security.
+# second reviewer from @limen/security.
 
 # ------------------------------------------------------------------
 # Default owners — core team reviews everything
 # ------------------------------------------------------------------
-*                                                 @paygate/core
+*                                                 @limen/core
 
 # ------------------------------------------------------------------
 # Verification + chain-specific logic — security review required
 # ------------------------------------------------------------------
-/packages/paygate-node/src/chains/                @paygate/security @paygate/core
-/packages/paygate-node/src/verification/          @paygate/security @paygate/core
-/packages/paygate-python/paygate/chains/          @paygate/security @paygate/core
-/packages/paygate-python/paygate/verification/    @paygate/security @paygate/core
+/packages/limen-node/src/chains/                @limen/security @limen/core
+/packages/limen-node/src/verification/          @limen/security @limen/core
+/packages/limen-python/limen/chains/          @limen/security @limen/core
+/packages/limen-python/limen/verification/    @limen/security @limen/core
 
 # ------------------------------------------------------------------
 # Smart contracts
 # ------------------------------------------------------------------
-/contracts/                                       @paygate/security @paygate/contracts
-/contracts/base/                                  @paygate/security @paygate/contracts
-/contracts/solana/                                @paygate/security @paygate/contracts
+/contracts/                                       @limen/security @limen/contracts
+/contracts/base/                                  @limen/security @limen/contracts
+/contracts/solana/                                @limen/security @limen/contracts
 
 # ------------------------------------------------------------------
 # Security-sensitive docs
 # ------------------------------------------------------------------
-/SECURITY.md                                      @paygate/security
-/AGENTS.md                                        @paygate/core @paygate/security
-/docs/security.md                                 @paygate/security
-/docs/compliance.md                               @paygate/security
+/SECURITY.md                                      @limen/security
+/AGENTS.md                                        @limen/core @limen/security
+/docs/security.md                                 @limen/security
+/docs/compliance.md                               @limen/security
 
 # ------------------------------------------------------------------
 # Release + supply-chain workflows
 # ------------------------------------------------------------------
-/.github/workflows/publish-npm.yml                @paygate/core @paygate/security
-/.github/workflows/publish-pypi.yml               @paygate/core @paygate/security
-/.github/workflows/publish-docker.yml             @paygate/core @paygate/security
-/.github/workflows/security-scan.yml              @paygate/security
-/.github/workflows/codeql.yml                     @paygate/security
-/.github/workflows/sbom.yml                       @paygate/security @paygate/core
-/.github/dependabot.yml                           @paygate/security @paygate/core
-/.github/renovate.json                            @paygate/security @paygate/core
+/.github/workflows/publish-npm.yml                @limen/core @limen/security
+/.github/workflows/publish-pypi.yml               @limen/core @limen/security
+/.github/workflows/publish-docker.yml             @limen/core @limen/security
+/.github/workflows/security-scan.yml              @limen/security
+/.github/workflows/codeql.yml                     @limen/security
+/.github/workflows/sbom.yml                       @limen/security @limen/core
+/.github/dependabot.yml                           @limen/security @limen/core
+/.github/renovate.json                            @limen/security @limen/core
 
 # ------------------------------------------------------------------
 # Apps
 # ------------------------------------------------------------------
-/apps/api/                                        @paygate/backend
-/apps/dashboard/                                  @paygate/frontend
+/apps/api/                                        @limen/backend
+/apps/dashboard/                                  @limen/frontend
 
 # ------------------------------------------------------------------
 # SDKs (non-verification paths)
 # ------------------------------------------------------------------
-/packages/paygate-node/                           @paygate/core @paygate/node
-/packages/paygate-python/                         @paygate/core @paygate/python
+/packages/limen-node/                           @limen/core @limen/node
+/packages/limen-python/                         @limen/core @limen/python
 
 # ------------------------------------------------------------------
 # Docs site
 # ------------------------------------------------------------------
-/docs/                                            @paygate/docs @paygate/core
+/docs/                                            @limen/docs @limen/core

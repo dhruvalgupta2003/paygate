@@ -47,8 +47,8 @@ pnpm install --lockfile-only
 
 # Determine new root version for tag
 root_version="$(node -pe "require('./package.json').version")"
-node_version="$(node -pe "require('./packages/paygate-node/package.json').version")"
-py_version="$(python -c "import tomllib,sys; print(tomllib.loads(open('packages/paygate-python/pyproject.toml','rb').read().decode())['project']['version'])")"
+node_version="$(node -pe "require('./packages/limen-node/package.json').version")"
+py_version="$(python -c "import tomllib,sys; print(tomllib.loads(open('packages/limen-python/pyproject.toml','rb').read().decode())['project']['version'])")"
 
 log "Root: v${root_version}  | node-sdk: v${node_version}  | python: v${py_version}"
 
@@ -56,15 +56,15 @@ log "Staging and committing release bump"
 git add -A
 git commit -m "chore(release): version packages
 
-- @paygate/node: ${node_version}
-- paygate (pypi): ${py_version}
+- @limen/node: ${node_version}
+- limen (pypi): ${py_version}
 - root: ${root_version}
 "
 
 log "Creating annotated tags"
-git tag -a "v${node_version}" -m "paygate v${node_version}"
+git tag -a "v${node_version}" -m "limen v${node_version}"
 if [[ "${py_version}" != "${node_version}" ]]; then
-  git tag -a "paygate-python-v${py_version}" -m "paygate-python v${py_version}"
+  git tag -a "limen-python-v${py_version}" -m "limen-python v${py_version}"
 fi
 
 log "Release commit + tags created. Push with:"

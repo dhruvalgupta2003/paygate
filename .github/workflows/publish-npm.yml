@@ -1,4 +1,4 @@
-# Publish the npm package @paygate/node via changesets.
+# Publish the npm package @limen/node via changesets.
 # Either opens a "Version Packages" PR or publishes after it merges.
 # Uses OIDC provenance (https://docs.npmjs.com/generating-provenance-statements).
 
@@ -56,10 +56,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build all publishable packages
-        run: pnpm build --filter '@paygate/*'
+        run: pnpm build --filter '@limen/*'
 
       - name: Run tests
-        run: pnpm test --filter '@paygate/*'
+        run: pnpm test --filter '@limen/*'
 
       - name: Configure npm for provenance
         run: |

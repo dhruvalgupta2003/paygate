@@ -18,14 +18,14 @@ path.
 `0.0005` USDC per call is a good starting point for most text APIs.
 `0.01`+ works for scraping, image gen, or heavier work.
 
-Check the [directory](https://paygate.dev/directory) to see what similar
+Check the [directory](https://limen.dev/directory) to see what similar
 APIs charge.
 
 ---
 
 ## Step 2 — Write a config
 
-Create `paygate.config.yml`:
+Create `limen.config.yml`:
 
 ```yaml
 version: 1
@@ -41,12 +41,12 @@ That's the whole config. Everything else is sane defaults.
 
 ---
 
-## Step 3 — Run PayGate in front of your API
+## Step 3 — Run Limen in front of your API
 
 ```bash
-# Your API is on :3000.  PayGate listens on :4021.
-npx @paygate/node start \
-  --config paygate.config.yml \
+# Your API is on :3000.  Limen listens on :4021.
+npx @limen/node start \
+  --config limen.config.yml \
   --upstream http://localhost:3000 \
   --port 4021
 ```
@@ -55,10 +55,10 @@ Or, via Docker:
 
 ```bash
 docker run --rm -p 4021:4021 \
-  -v $(pwd)/paygate.config.yml:/app/paygate.config.yml:ro \
-  -e PAYGATE_WALLET_BASE=0xYourAddress \
-  ghcr.io/paygate/proxy:latest \
-  start --config /app/paygate.config.yml --upstream http://host.docker.internal:3000
+  -v $(pwd)/limen.config.yml:/app/limen.config.yml:ro \
+  -e LIMEN_WALLET_BASE=0xYourAddress \
+  ghcr.io/limen/proxy:latest \
+  start --config /app/limen.config.yml --upstream http://host.docker.internal:3000
 ```
 
 ---
@@ -102,7 +102,7 @@ Revenue, requests, agents. Tick tick tick.
 
 ## Bumps
 
-- Change DNS to point your public domain at PayGate (port 4021). PayGate
+- Change DNS to point your public domain at Limen (port 4021). Limen
   terminates TLS or trusts your LB if `advanced.trust_proxy: true`.
 - Add `wallets.solana` for sub-cent payments.
 - Add `rate_limits` if an agent is noisy.

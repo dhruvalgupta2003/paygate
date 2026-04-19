@@ -21,6 +21,6 @@ cat <<'EOF'
 ==> 3. Agent retry.
     Sign an EIP-3009 transferWithAuthorization for 1000 USDC micros to
     PaymentRequirements.payTo, base64 the PaymentAuth, re-send with
-    `X-PAYMENT: <base64>`. PayGate verifies via the facilitator and unlocks
+    `X-PAYMENT: <base64>`. Limen verifies via the facilitator and unlocks
     the handler in app/api/premium/route.ts.
 EOF

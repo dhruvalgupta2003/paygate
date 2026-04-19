@@ -1,6 +1,6 @@
-# PayGate
+# Limen
 
-> PayGate is an open-source **x402 paywall** for AI agent traffic. It lets any
+> Limen is an open-source **x402 paywall** for AI agent traffic. It lets any
 > API owner monetise endpoints for machine-to-machine consumers with a single
 > config file: set a price per call in USDC, and any x402-capable agent on
 > Base or Solana can discover, pay, and consume the API instantly.
@@ -9,45 +9,45 @@
 
 ## Primary surfaces
 
-- [README](https://github.com/dhruvalgupta2003/paygate/blob/main/README.md): project overview, quickstart, chain matrix.
-- [AGENTS.md](https://github.com/dhruvalgupta2003/paygate/blob/main/AGENTS.md): how AI coding agents should operate inside the repo.
-- [Architecture](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/architecture.md): components, data flow, deployment topologies.
-- [Payment flow](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/payment-flow.md): x402 handshake explained end-to-end.
-- [Security](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/security.md): threat model, invariants, audit plan.
-- [Compliance](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/compliance.md): OFAC, MiCA, GDPR, SOC 2 evidence.
+- [README](https://github.com/dhruvalgupta2003/limen/blob/main/README.md): project overview, quickstart, chain matrix.
+- [AGENTS.md](https://github.com/dhruvalgupta2003/limen/blob/main/AGENTS.md): how AI coding agents should operate inside the repo.
+- [Architecture](https://github.com/dhruvalgupta2003/limen/blob/main/docs/architecture.md): components, data flow, deployment topologies.
+- [Payment flow](https://github.com/dhruvalgupta2003/limen/blob/main/docs/payment-flow.md): x402 handshake explained end-to-end.
+- [Security](https://github.com/dhruvalgupta2003/limen/blob/main/docs/security.md): threat model, invariants, audit plan.
+- [Compliance](https://github.com/dhruvalgupta2003/limen/blob/main/docs/compliance.md): OFAC, MiCA, GDPR, SOC 2 evidence.
 
 ## Chains
 
-- [Base integration](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/base.md): EIP-3009 transfer authorisation, permit2, USDC verification, reorg handling.
-- [Solana integration](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/solana.md): SPL verification, priority fees, finality, Address Lookup Tables.
+- [Base integration](https://github.com/dhruvalgupta2003/limen/blob/main/docs/base.md): EIP-3009 transfer authorisation, permit2, USDC verification, reorg handling.
+- [Solana integration](https://github.com/dhruvalgupta2003/limen/blob/main/docs/solana.md): SPL verification, priority fees, finality, Address Lookup Tables.
 
 ## Operations
 
-- [Scaling](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/scaling.md): horizontal scale, Redis sharding, RPC failover, read replicas.
-- [Monitoring](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/monitoring.md): OpenTelemetry, Prometheus, SLOs, runbooks.
-- [Error handling](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/error-handling.md): error taxonomy + retry policies.
-- [Deployment](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/deployment.md): Fly, Render, Railway, ECS, Kubernetes.
+- [Scaling](https://github.com/dhruvalgupta2003/limen/blob/main/docs/scaling.md): horizontal scale, Redis sharding, RPC failover, read replicas.
+- [Monitoring](https://github.com/dhruvalgupta2003/limen/blob/main/docs/monitoring.md): OpenTelemetry, Prometheus, SLOs, runbooks.
+- [Error handling](https://github.com/dhruvalgupta2003/limen/blob/main/docs/error-handling.md): error taxonomy + retry policies.
+- [Deployment](https://github.com/dhruvalgupta2003/limen/blob/main/docs/deployment.md): Fly, Render, Railway, ECS, Kubernetes.
 
 ## SDK reference
 
-- [Node SDK (npm: @paygate/node)](https://github.com/dhruvalgupta2003/paygate/blob/main/packages/paygate-node/README.md): TypeScript SDK + proxy + CLI.
-- [Python SDK (PyPI: paygate)](https://github.com/dhruvalgupta2003/paygate/blob/main/packages/paygate-python/README.md): Python SDK + proxy + CLI.
-- [API reference](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/api-reference.md): REST, WebSocket, CLI.
+- [Node SDK (npm: @limen/node)](https://github.com/dhruvalgupta2003/limen/blob/main/packages/limen-node/README.md): TypeScript SDK + proxy + CLI.
+- [Python SDK (PyPI: limen)](https://github.com/dhruvalgupta2003/limen/blob/main/packages/limen-python/README.md): Python SDK + proxy + CLI.
+- [API reference](https://github.com/dhruvalgupta2003/limen/blob/main/docs/api-reference.md): REST, WebSocket, CLI.
 
 ## Examples
 
-- [Express + PayGate](https://github.com/dhruvalgupta2003/paygate/tree/main/examples/express-api)
-- [FastAPI + PayGate](https://github.com/dhruvalgupta2003/paygate/tree/main/examples/fastapi-api)
-- [Next.js App Router + PayGate](https://github.com/dhruvalgupta2003/paygate/tree/main/examples/nextjs-api)
-- [Hono + PayGate](https://github.com/dhruvalgupta2003/paygate/tree/main/examples/hono-api)
-- [Solana RPC gateway](https://github.com/dhruvalgupta2003/paygate/tree/main/examples/solana-rpc-gateway)
-- [Django + DRF](https://github.com/dhruvalgupta2003/paygate/tree/main/examples/django-drf)
+- [Express + Limen](https://github.com/dhruvalgupta2003/limen/tree/main/examples/express-api)
+- [FastAPI + Limen](https://github.com/dhruvalgupta2003/limen/tree/main/examples/fastapi-api)
+- [Next.js App Router + Limen](https://github.com/dhruvalgupta2003/limen/tree/main/examples/nextjs-api)
+- [Hono + Limen](https://github.com/dhruvalgupta2003/limen/tree/main/examples/hono-api)
+- [Solana RPC gateway](https://github.com/dhruvalgupta2003/limen/tree/main/examples/solana-rpc-gateway)
+- [Django + DRF](https://github.com/dhruvalgupta2003/limen/tree/main/examples/django-drf)
 
 ## Machine-readable knowledge dump
 
-- [llms-full.txt](https://github.com/dhruvalgupta2003/paygate/blob/main/docs/llms-full.txt): flattened docs for retrieval.
+- [llms-full.txt](https://github.com/dhruvalgupta2003/limen/blob/main/docs/llms-full.txt): flattened docs for retrieval.
 
 ## Optional
 
-- [Contributing](https://github.com/dhruvalgupta2003/paygate/blob/main/CONTRIBUTING.md)
-- [Security disclosure](https://github.com/dhruvalgupta2003/paygate/blob/main/SECURITY.md)
+- [Contributing](https://github.com/dhruvalgupta2003/limen/blob/main/CONTRIBUTING.md)
+- [Security disclosure](https://github.com/dhruvalgupta2003/limen/blob/main/SECURITY.md)

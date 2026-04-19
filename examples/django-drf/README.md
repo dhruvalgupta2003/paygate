@@ -1,6 +1,6 @@
 # examples/django-drf
 
-Minimal Django + DRF app behind PayGate.
+Minimal Django + DRF app behind Limen.
 
 ```bash
 cp .env.example .env
@@ -14,5 +14,5 @@ curl -i http://localhost:3000/api/v1/ping              # 402
 curl -i http://localhost:3000/api/v1/premium/gold      # 402, $0.05
 ```
 
-See `paygate_demo/settings.py` for the `PAYGATE = {...}` block that
+See `limen_demo/settings.py` for the `LIMEN = {...}` block that
 drives the middleware.

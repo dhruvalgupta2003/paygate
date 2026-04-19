@@ -1,0 +1,35 @@
+{
+  "name": "@limen/node",
+  "version": "0.0.1",
+  "description": "Limen — x402 paywall for AI agent traffic. Placeholder release; the real SDK ships at 0.1+. Track progress at https://github.com/dhruvalgupta2003/limen.",
+  "license": "MIT",
+  "homepage": "https://github.com/dhruvalgupta2003/limen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dhruvalgupta2003/limen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dhruvalgupta2003/limen/issues"
+  },
+  "keywords": [
+    "x402",
+    "paywall",
+    "usdc",
+    "base",
+    "solana",
+    "ai-agents",
+    "placeholder"
+  ],
+  "author": "Limen contributors",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

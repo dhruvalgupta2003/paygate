@@ -1,6 +1,6 @@
 # Security
 
-PayGate's code handles money. We take security seriously and expect
+Limen's code handles money. We take security seriously and expect
 collaborators to do the same.
 
 ---
@@ -10,17 +10,17 @@ collaborators to do the same.
 **Do not open a public issue.** Use one of:
 
 1. **Preferred — GitHub private vulnerability advisory**
-   <https://github.com/dhruvalgupta2003/paygate/security/advisories/new>
+   <https://github.com/dhruvalgupta2003/limen/security/advisories/new>
 
-2. Email `security@paygate.dev` with PGP encryption.
+2. Email `security@limen.dev` with PGP encryption.
    ```
    Key ID:   0xD1F0 72A5 9C1E 3B44
    Fingerprint: A91B  2D3F  9C2C  08C5  E77A   6B21  D1F0  72A5  9C1E  3B44
    ```
-   Public key is published at <https://paygate.dev/.well-known/pgp-key.asc>
+   Public key is published at <https://limen.dev/.well-known/pgp-key.asc>
    and on `keys.openpgp.org`.
 
-3. If email is blocked, DM `@paygate_security` on X / Twitter to request an
+3. If email is blocked, DM `@limen_security` on X / Twitter to request an
    alternative channel. We will **not** discuss specifics on social media.
 
 Reports are triaged within **1 business day**. We aim to:
@@ -36,10 +36,10 @@ Reports are triaged within **1 business day**. We aim to:
 
 In scope:
 
-- `@paygate/node`, `paygate` (PyPI), `paygate-proxy` Docker images
+- `@limen/node`, `limen` (PyPI), `limen-proxy` Docker images
 - `apps/dashboard`, `apps/api`
 - Smart contracts in `contracts/`
-- Hosted services under `paygate.dev` and `*.paygate.dev`
+- Hosted services under `limen.dev` and `*.limen.dev`
 - Anything labelled `security` in this repo
 
 Out of scope:
@@ -48,7 +48,7 @@ Out of scope:
 - Social engineering, physical attacks, or denial-of-service via excessive volume
 - Findings on testnet-only environments that do not affect mainnet
 - Issues requiring a compromised machine to demonstrate
-- Issues on forks / unofficial deployments of PayGate
+- Issues on forks / unofficial deployments of Limen
 
 ---
 
@@ -85,7 +85,7 @@ Indicative reward bands (USD):
 
 We publish SBOMs (CycloneDX) and Sigstore signatures for every release:
 
-- npm: `npm view @paygate/node dist` includes signature metadata
+- npm: `npm view @limen/node dist` includes signature metadata
 - PyPI: artefacts are signed via Sigstore / PEP 740
 - Docker: images are signed via `cosign` and attested via SLSA provenance
 
@@ -118,9 +118,9 @@ We do not roll our own crypto.
 ## Secure development
 
 - `main` is protected; all changes land via reviewed PRs.
-- Verification-path files require a second reviewer from `@paygate/security`.
+- Verification-path files require a second reviewer from `@limen/security`.
 - Signed commits required for core maintainers.
-- Runtime secrets never land in logs; see `packages/paygate-node/src/utils/logger.ts`.
+- Runtime secrets never land in logs; see `packages/limen-node/src/utils/logger.ts`.
 - Dependency bumps go through Renovate with ≥ 24 h cooling period for
   non-security releases.
 - Every release is reproducible from tag.

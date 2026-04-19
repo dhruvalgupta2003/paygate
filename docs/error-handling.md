@@ -1,6 +1,6 @@
 # Error handling
 
-Every error returned by PayGate is:
+Every error returned by Limen is:
 
 - **Stable** — the `error` code string never changes within a major version.
 - **Classified** — HTTP status, retryability, and severity.
@@ -18,7 +18,7 @@ Every error returned by PayGate is:
   "requestId": "01J2E3F4C5K6P7Q8R9S0T1U2V3",
   "retryable": true,
   "retryAfterMs": 2000,
-  "docs": "https://paygate.dev/docs/errors#amount_insufficient"
+  "docs": "https://limen.dev/docs/errors#amount_insufficient"
 }
 ```
 
@@ -82,7 +82,7 @@ do not retry; surface to the caller.
 
 ### Server side (internal)
 
-Internal retries use `tenacity` (Python) or `@paygate/node`'s `retry`
+Internal retries use `tenacity` (Python) or `@limen/node`'s `retry`
 helper:
 
 - RPC `fetchTransaction`: 4 attempts, exponential backoff, jittered.
@@ -95,7 +95,7 @@ helper:
 ## Logging on error
 
 ```
-ERROR service=paygate-proxy
+ERROR service=limen-proxy
       code=AMOUNT_INSUFFICIENT
       chain=base
       endpoint=/api/v1/premium/*

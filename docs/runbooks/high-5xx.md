@@ -9,25 +9,25 @@
 - Agents that get 5xx before verify can safely retry.
 
 ## Diagnosis
-1. `rate(paygate_http_duration_seconds_count{status=~"5.."}[5m])` — which
+1. `rate(limen_http_duration_seconds_count{status=~"5.."}[5m])` — which
    status and which route?
 2. Segment by `endpoint` — is it one operator or all?
-3. Check `paygate_rpc_failures_total` — if RPC is flapping, route to
+3. Check `limen_rpc_failures_total` — if RPC is flapping, route to
    `RPCUnavailable`.
 4. Check upstream reachability from a proxy pod:
-   `kubectl exec -it paygate-proxy-xxxx -- curl -v <upstream>/livez`
+   `kubectl exec -it limen-proxy-xxxx -- curl -v <upstream>/livez`
 
 ## Immediate mitigation
 - If one upstream is misbehaving and pre-verify: return `503
   SERVICE_DEGRADED` for that endpoint via a route-level circuit breaker
-  (set `PAYGATE_BREAK_<slug>=1`).
+  (set `LIMEN_BREAK_<slug>=1`).
 - If post-verify failures are widespread: enable the auto-refund flag for
   the affected operator (`operators/<id>/auto_refund=true`) while we
   investigate.
 
 ## Root cause investigation
 - Grep logs for `outcome:"upstream_failed"` within the last hour.
-- Attach a trace query: `paygate.upstream.duration_seconds` histogram.
+- Attach a trace query: `limen.upstream.duration_seconds` histogram.
 - Cross-check operator's dashboard for deploys / config changes.
 
 ## Long-term fix

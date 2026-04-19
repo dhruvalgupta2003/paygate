@@ -1,4 +1,4 @@
-# PayGate supply-chain security scanners.
+# Limen supply-chain security scanners.
 # Covers: secrets (gitleaks), filesystem vulnerabilities (trivy), npm + pip
 # dependency audit, OSV-scanner. Results upload SARIF to GitHub Code Scanning.
 
@@ -140,7 +140,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: packages/paygate-python
+        working-directory: packages/limen-python
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

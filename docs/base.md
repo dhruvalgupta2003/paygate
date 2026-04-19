@@ -1,6 +1,6 @@
 # Base integration
 
-Base is Coinbase's L2. PayGate treats Base as the default home of USDC for
+Base is Coinbase's L2. Limen treats Base as the default home of USDC for
 agent payments because:
 
 - Fees are near-zero ($0.0001–0.001 per transfer).
@@ -15,8 +15,8 @@ agent payments because:
 - **Mainnet:** `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` (6 decimals)
 - **Base Sepolia (test):** `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
 
-Constants live in `packages/paygate-node/src/chains/base.ts` /
-`paygate/chains/base.py`.
+Constants live in `packages/limen-node/src/chains/base.ts` /
+`limen/chains/base.py`.
 
 ---
 
@@ -46,7 +46,7 @@ Constants live in `packages/paygate-node/src/chains/base.ts` /
 }
 ```
 
-PayGate:
+Limen:
 
 1. Recovers the signer via `recoverTypedDataAddress` against USDC's
    EIP-712 domain:
@@ -69,11 +69,11 @@ PayGate:
 
 ## Modes
 
-- **Signed authorisation (default).** The agent signs, PayGate submits.
-  PayGate pays gas (a few thousandths of a cent). This is the best UX —
+- **Signed authorisation (default).** The agent signs, Limen submits.
+  Limen pays gas (a few thousandths of a cent). This is the best UX —
   the agent doesn't need ETH.
 - **Direct transfer.** The agent submits its own USDC transfer with the
-  nonce in the calldata. PayGate verifies the on-chain transfer event.
+  nonce in the calldata. Limen verifies the on-chain transfer event.
 - **Permit2.** Optional, for advanced flows where one approval covers
   multiple endpoints. Disabled by default.
 
@@ -82,7 +82,7 @@ PayGate:
 ## Confirmations
 
 - Default: 2 blocks (~4 s).
-- For payments ≥ `PAYGATE_BASE_HIGH_VALUE_THRESHOLD_USD` (default 1000), we
+- For payments ≥ `LIMEN_BASE_HIGH_VALUE_THRESHOLD_USD` (default 1000), we
   wait for 10 blocks.
 - Base inherits Ethereum L1 finality after about 15 min (batch posting).
   We treat 2 blocks as economically final for micropayments because the
@@ -93,7 +93,7 @@ PayGate:
 
 ## Reorg handling
 
-- PayGate listens for `newHeads` events and compares seen block hashes.
+- Limen listens for `newHeads` events and compares seen block hashes.
 - If a settled tx disappears from canonical history:
   - Mark `transactions.status = "reorged"`.
   - Emit `payment.reorged` webhook.
@@ -104,7 +104,7 @@ PayGate:
 
 ## Gas and fees
 
-- PayGate pays gas by default. The typical tx is ~45,000 gas.
+- Limen pays gas by default. The typical tx is ~45,000 gas.
 - At 1 gwei base fee (Base is typically 0.1–1 gwei) and ETH at $3000, that
   is ~$0.0001 per payment.
 - Operators can opt into `ethereum_payer.agent_pays: true` to push gas to
@@ -120,7 +120,7 @@ PayGate:
 - Public Base RPC (`https://mainnet.base.org`) — rate-limited, dev only
 - Ankr (Base)
 
-Configure multiple via comma-separated `PAYGATE_BASE_RPC_URL`. Weighted
+Configure multiple via comma-separated `LIMEN_BASE_RPC_URL`. Weighted
 round-robin with cooldown on 429 / 5xx.
 
 ---

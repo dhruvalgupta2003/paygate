@@ -28,7 +28,7 @@ Honest, running roadmap. Items marked **[landed]** are in `main`.
 ## v0.2
 
 - [ ] On-chain Solana program (Anchor) — receipts + escrow
-- [ ] Edge runtime package (`@paygate/node-edge` for Cloudflare Workers, Vercel Edge)
+- [ ] Edge runtime package (`@limen/node-edge` for Cloudflare Workers, Vercel Edge)
 - [ ] TypeScript client SDK for **agents** (sign + retry)
 - [ ] Python client SDK for agents
 - [ ] Rust agent SDK (no MSRV bump; built on alloy + solana-client)

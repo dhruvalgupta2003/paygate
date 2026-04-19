@@ -1,6 +1,6 @@
 # Deployment
 
-PayGate runs anywhere Node 20+ or Python 3.11+ runs. This doc walks through
+Limen runs anywhere Node 20+ or Python 3.11+ runs. This doc walks through
 the common targets and the operational knobs that matter.
 
 ---
@@ -22,24 +22,24 @@ the common targets and the operational knobs that matter.
 ### Fly.io
 
 ```bash
-fly launch --copy-config --image ghcr.io/paygate/proxy:latest
+fly launch --copy-config --image ghcr.io/limen/proxy:latest
 fly secrets set \
-  PAYGATE_WALLET_BASE=0x... \
-  PAYGATE_REDIS_URL=rediss://... \
-  PAYGATE_BASE_RPC_URL=https://...
+  LIMEN_WALLET_BASE=0x... \
+  LIMEN_REDIS_URL=rediss://... \
+  LIMEN_BASE_RPC_URL=https://...
 ```
 
 `fly.toml` sample lives in `deploy/fly/`.
 
 ### Render.com
 
-Web service → Docker → `ghcr.io/paygate/proxy:latest` →
+Web service → Docker → `ghcr.io/limen/proxy:latest` →
 set env vars → deploy.
 
 ### Railway
 
 Deploy template:
-`https://railway.app/template/paygate` (placeholder; update before release).
+`https://railway.app/template/limen` (placeholder; update before release).
 
 ### AWS ECS / Fargate
 
@@ -63,19 +63,19 @@ Deploy template:
 ### Helm
 
 ```bash
-helm repo add paygate https://charts.paygate.dev
-helm install paygate paygate/paygate \
-  --namespace paygate --create-namespace \
+helm repo add limen https://charts.limen.dev
+helm install limen limen/limen \
+  --namespace limen --create-namespace \
   --set wallet.base=0x... \
   --set redis.url=redis://redis.infra:6379
 ```
 
 The chart creates:
 
-- Deployment + HPA for `paygate-proxy`.
-- Deployment for `paygate-api`.
-- StatefulSet for `paygate-dashboard` (static assets behind nginx).
-- CronJob for `paygate-audit-ship` → S3.
+- Deployment + HPA for `limen-proxy`.
+- Deployment for `limen-api`.
+- StatefulSet for `limen-dashboard` (static assets behind nginx).
+- CronJob for `limen-audit-ship` → S3.
 - ServiceMonitor (Prometheus Operator) + PodDisruptionBudget.
 - NetworkPolicy (only allows outbound to Redis / Postgres / RPC allowlist).
 
@@ -89,14 +89,14 @@ See `deploy/k8s/` for plain YAML.
 
 Required:
 
-- `PAYGATE_WALLET_BASE`, `PAYGATE_WALLET_SOLANA` — receiving addresses.
-- `PAYGATE_ADMIN_SECRET` — for /admin endpoints.
-- `PAYGATE_JWT_SECRET` — dashboard sessions.
-- `PAYGATE_WEBHOOK_SIGNING_SECRET` — webhook HMAC.
+- `LIMEN_WALLET_BASE`, `LIMEN_WALLET_SOLANA` — receiving addresses.
+- `LIMEN_ADMIN_SECRET` — for /admin endpoints.
+- `LIMEN_JWT_SECRET` — dashboard sessions.
+- `LIMEN_WEBHOOK_SIGNING_SECRET` — webhook HMAC.
 
 Optional:
 
-- `PAYGATE_FACILITATOR_API_KEY`, `PAYGATE_CIRCLE_API_KEY`,
+- `LIMEN_FACILITATOR_API_KEY`, `LIMEN_CIRCLE_API_KEY`,
   `SENTRY_DSN`, `OTEL_EXPORTER_OTLP_ENDPOINT`.
 
 Generate:
@@ -129,26 +129,26 @@ Store them in your platform's secret manager. Do not commit `.env`.
 
 ## Directory (public discovery)
 
-- To publish your API into the PayGate directory, set
+- To publish your API into the Limen directory, set
   `discovery.listed: true` in config.
 - You'll be asked to sign a challenge with your receiving wallet to prove
   ownership.
 - Listing includes: name, slug, description, endpoints (path patterns
   only), price ranges, tags, uptime badge.
 
-Opt out at any time via `paygate directory unlist`.
+Opt out at any time via `limen directory unlist`.
 
 ---
 
 ## Blue/green or canary rollouts
 
-PayGate is stateless at the request tier, so standard traffic-splitting
+Limen is stateless at the request tier, so standard traffic-splitting
 works. Caveats:
 
 - Both versions share the same Redis (replay nonces must not be lost
   during a cutover). Keep them on the same Redis until the new version is
   fully promoted.
-- If you change the config schema `version:`, run `paygate config
+- If you change the config schema `version:`, run `limen config
   migrate` and ensure the new config is forward-compatible with the old
   proxy during the overlap window.
 
@@ -167,7 +167,7 @@ works. Caveats:
 
 - **Patch releases** — safe to roll out without config changes.
 - **Minor releases** — may introduce new config keys (defaulted). Run
-  `paygate config lint` against a new release before rolling.
+  `limen config lint` against a new release before rolling.
 - **Major releases** — will include a migration guide in
   `docs/migrations/` and a dedicated changeset.
 

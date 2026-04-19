@@ -1,10 +1,10 @@
-# PayGate Express example — local stack.
+# Limen Express example — local stack.
 # Usage: `cp .env.example .env && docker compose up`
 #
 # Services:
 #   redis  — nonce store + rate limits
 #   api    — the Express app (:3000, protected in-process)
-#   proxy  — standalone PayGate proxy sidecar (:4021, in front of api)
+#   proxy  — standalone Limen proxy sidecar (:4021, in front of api)
 #
 # Most users only need one of `api` OR `proxy`. The sidecar option is shown
 # here so you can compare in-process middleware vs. the drop-in proxy mode.
@@ -12,7 +12,7 @@
 services:
   redis:
     image: redis:7-alpine
-    container_name: paygate-example-express-redis
+    container_name: limen-example-express-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -27,7 +27,7 @@ services:
     build:
       context: ../..
       dockerfile: examples/express-api/Dockerfile
-    container_name: paygate-example-express-api
+    container_name: limen-example-express-api
     restart: unless-stopped
     env_file: .env
     environment:
@@ -40,16 +40,16 @@ services:
         condition: service_healthy
 
   proxy:
-    image: ghcr.io/paygate/proxy:latest
-    container_name: paygate-example-express-proxy
+    image: ghcr.io/limen/proxy:latest
+    container_name: limen-example-express-proxy
     restart: unless-stopped
     env_file: .env
     environment:
-      PAYGATE_REDIS_URL: redis://redis:6379
-      PAYGATE_UPSTREAM_URL: http://api:3000
-    command: ["start", "--config", "/app/paygate.config.yml"]
+      LIMEN_REDIS_URL: redis://redis:6379
+      LIMEN_UPSTREAM_URL: http://api:3000
+    command: ["start", "--config", "/app/limen.config.yml"]
     volumes:
-      - ./paygate.config.yml:/app/paygate.config.yml:ro
+      - ./limen.config.yml:/app/limen.config.yml:ro
     ports:
       - "4021:4021"
     depends_on:

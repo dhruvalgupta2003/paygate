@@ -1,0 +1,14 @@
+version: 1
+project: { name: flask-example, slug: flask-example }
+wallets:
+  base-sepolia: "${LIMEN_WALLET_BASE_SEPOLIA}"
+defaults:
+  chain: base-sepolia
+  facilitator: coinbase
+endpoints:
+  - path: /
+    price_usdc: 0
+  - path: /api/v1/hello
+    price_usdc: 0.001
+  - path: /api/v1/premium/*
+    price_usdc: 0.05

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  PayGate mono mark. Single fill via currentColor.
+  Limen mono mark. Single fill via currentColor — inherits color from
+  surrounding text so it reads correctly in any theme without media queries.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="PayGate">
-  <title>PayGate</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Limen">
+  <title>Limen</title>
   <g fill="currentColor">
-    <rect x="44"  y="32"  width="44" height="192" rx="3"/>
-    <rect x="168" y="32"  width="44" height="192" rx="3"/>
-    <rect x="106" y="106" width="44" height="44"  rx="3"/>
+    <rect x="48" y="88"  width="160" height="14" rx="2"/>
+    <rect x="48" y="144" width="160" height="24" rx="2"/>
   </g>
 </svg>

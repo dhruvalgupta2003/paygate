@@ -1,11 +1,11 @@
 import type { ErrorHandler, NotFoundHandler } from 'hono';
 import { ZodError } from 'zod';
 import { HTTPException } from 'hono/http-exception';
-import { ErrorCode, PayGateError, toPayGateError } from '../lib/errors.js';
+import { ErrorCode, LimenError, toLimenError } from '../lib/errors.js';
 import { childLogger } from '../lib/logger.js';
 
 /**
- * Global error funnel.  Every thrown value becomes a PayGate envelope:
+ * Global error funnel.  Every thrown value becomes a Limen envelope:
  *   { error, detail, requestId, retryable, docs, ... }
  *
  * ZodError → VALIDATION_FAILED with the first issue path/message.
@@ -35,21 +35,21 @@ export const globalErrorHandler: ErrorHandler = (err, c) => {
 
 export const notFoundHandler: NotFoundHandler = (c) => {
   const requestId = (c.get('requestId') as string | undefined) ?? 'unknown';
-  const pe = new PayGateError({
+  const pe = new LimenError({
     code: ErrorCode.NOT_FOUND,
     detail: `no route for ${c.req.method} ${c.req.path}`,
   });
   return c.json(pe.toEnvelope(requestId), pe.http as Parameters<typeof c.json>[1]);
 };
 
-function normalise(err: unknown): PayGateError {
-  if (err instanceof PayGateError) return err;
+function normalise(err: unknown): LimenError {
+  if (err instanceof LimenError) return err;
 
   if (err instanceof ZodError) {
     const issue = err.issues[0];
     const path = issue?.path.join('.') ?? '';
     const msg = issue?.message ?? 'validation failed';
-    return new PayGateError({
+    return new LimenError({
       code: ErrorCode.VALIDATION_FAILED,
       detail: path.length > 0 ? `${path}: ${msg}` : msg,
       extra: { issues: err.issues },
@@ -58,10 +58,10 @@ function normalise(err: unknown): PayGateError {
 
   if (err instanceof HTTPException) {
     const code = statusToCode(err.status);
-    return new PayGateError({ code, detail: err.message || code });
+    return new LimenError({ code, detail: err.message || code });
   }
 
-  return toPayGateError(err);
+  return toLimenError(err);
 }
 
 function statusToCode(status: number): ErrorCode {

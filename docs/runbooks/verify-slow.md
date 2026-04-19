@@ -1,7 +1,7 @@
 # VerifyLatencyP99High
 
 ## Symptom
-p99 `paygate_verify_duration_seconds` exceeds SLO (250 ms Base, 800 ms
+p99 `limen_verify_duration_seconds` exceeds SLO (250 ms Base, 800 ms
 Solana) for ≥ 10 minutes.
 
 ## Impact
@@ -12,7 +12,7 @@ load.
 1. Split by `chain` — is it EVM or Solana?
 2. Split by `mode` — is facilitator slow, or direct RPC?
 3. Check upstream RPC / facilitator dashboards.
-4. `paygate_rpc_failures_total{status="429"}` — throttled?
+4. `limen_rpc_failures_total{status="429"}` — throttled?
 
 ## Immediate mitigation
 - Facilitator mode slow → fail over to direct for

@@ -1,12 +1,12 @@
 # RFC-0001: Facilitator failover semantics
 
 - Status: accepted
-- Authors: PayGate core
+- Authors: Limen core
 - Created: 2026-04-17
 
 ## Motivation
 
-PayGate supports two settlement modes: **facilitator** (fast, trusted) and
+Limen supports two settlement modes: **facilitator** (fast, trusted) and
 **direct RPC** (robust, independent). Operators need a deterministic rule
 for when we silently failover.
 
@@ -24,15 +24,15 @@ Fail over to direct mode for `advanced.facilitator_failover_seconds`
 ### During failover
 
 - Direct mode is used for verify + settle.
-- Emit `paygate_facilitator_failover_active=1` gauge.
-- Emit `paygate.facilitator.failover` log event with `reason`.
+- Emit `limen_facilitator_failover_active=1` gauge.
+- Emit `limen.facilitator.failover` log event with `reason`.
 - Retry facilitator health every 30 s; on two consecutive 200s, return
   to normal.
 
 ### Recovery
 
 - Flip the gauge to 0.
-- Emit `paygate.facilitator.recovered` log event.
+- Emit `limen.facilitator.recovered` log event.
 - Next verify uses facilitator.
 
 ### Security notes

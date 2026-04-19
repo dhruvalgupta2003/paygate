@@ -37,7 +37,7 @@
   );
   background-size: 200% 100%;
   animation: pg-shimmer 1600ms linear infinite;
-  border-radius: var(--pg-radius-md);
+  border-radius: var(--limen-radius-md);
 }
 
 .dark .pg-skeleton {

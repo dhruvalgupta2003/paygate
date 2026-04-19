@@ -17,7 +17,7 @@ UPSTREAM="${UPSTREAM:-http://localhost:3000}"
 PROXY="${PROXY:-http://localhost:4021}"
 ENDPOINT="${ENDPOINT:-/api/v1/weather/sf}"
 
-exec node packages/paygate-node/dist/cli.js demo \
+exec node packages/limen-node/dist/cli.js demo \
   --upstream "$PROXY" \
   --endpoint "$ENDPOINT" \
   --chain base-sepolia \

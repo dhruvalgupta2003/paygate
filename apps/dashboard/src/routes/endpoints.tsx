@@ -79,7 +79,7 @@ function EndpointsRoute() {
         {!endpoints.isLoading && list.length === 0 ? (
           <div className="rounded-xl border border-dashed border-ink-300 bg-cloud p-12 text-center text-sm text-ink-500 dark:border-ink-700 dark:bg-ink-900">
             No endpoints configured yet. Add one or import your{' '}
-            <code className="text-xs">paygate.config.yml</code>.
+            <code className="text-xs">limen.config.yml</code>.
           </div>
         ) : null}
       </div>

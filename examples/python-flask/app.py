@@ -1,4 +1,4 @@
-"""Flask + PayGate example."""
+"""Flask + Limen example."""
 
 from __future__ import annotations
 
@@ -6,13 +6,13 @@ import os
 
 from flask import Flask, jsonify
 
-from paygate.flask import paygate_middleware
+from limen.flask import limen_middleware
 
 app = Flask(__name__)
 
-app.wsgi_app = paygate_middleware(
+app.wsgi_app = limen_middleware(
     app.wsgi_app,
-    wallets={"base-sepolia": os.environ.get("PAYGATE_WALLET_BASE_SEPOLIA", "0x0000000000000000000000000000000000000001")},
+    wallets={"base-sepolia": os.environ.get("LIMEN_WALLET_BASE_SEPOLIA", "0x0000000000000000000000000000000000000001")},
     endpoints=[
         {"path": "/", "price_usdc": "0"},
         {"path": "/api/v1/hello", "price_usdc": "0.001"},
@@ -30,7 +30,7 @@ def index() -> object:
 
 @app.get("/api/v1/hello")
 def hello() -> object:
-    return jsonify(ok=True, message="paid via PayGate")
+    return jsonify(ok=True, message="paid via Limen")
 
 
 @app.get("/api/v1/premium/<slug>")

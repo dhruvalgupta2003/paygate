@@ -6,9 +6,9 @@ RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 COPY pnpm-workspace.yaml package.json tsconfig.base.json turbo.json ./
 COPY apps/api/package.json apps/api/tsconfig.json apps/api/tsup.config.ts ./apps/api/
 RUN --mount=type=cache,target=/root/.pnpm-store \
-    pnpm install --filter paygate-api... --frozen-lockfile=false
+    pnpm install --filter limen-api... --frozen-lockfile=false
 COPY apps/api/src ./apps/api/src
-RUN pnpm --filter paygate-api build
+RUN pnpm --filter limen-api build
 
 FROM gcr.io/distroless/nodejs20-debian12:nonroot
 WORKDIR /app

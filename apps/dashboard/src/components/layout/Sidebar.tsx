@@ -19,7 +19,7 @@ export function Sidebar() {
     <aside className="sticky top-0 hidden h-screen w-60 flex-col gap-4 border-r border-ink-200/60 bg-cloud px-5 py-6 dark:border-ink-800/60 dark:bg-ink-900 lg:flex">
       <Link to="/" className="flex items-center gap-3 font-semibold tracking-tight">
         <Logo className="h-9 w-9" />
-        <span className="text-lg">paygate</span>
+        <span className="text-lg">limen</span>
       </Link>
 
       <nav className="flex flex-col gap-1 pt-4">

@@ -3,17 +3,17 @@ import { verify as jwtVerify } from 'hono/jwt';
 import type { JWTPayload as HonoJWTPayload } from 'hono/utils/jwt/types';
 import { z } from 'zod';
 import { getEnv } from '../config/env.js';
-import { PayGateError, ErrorCode } from '../lib/errors.js';
+import { LimenError, ErrorCode } from '../lib/errors.js';
 import { metrics } from '../lib/metrics.js';
 import { verifyAdminSignature } from '../lib/signature.js';
 
 /**
  * Unified auth middleware.  Either:
  *   1. Authorization: Bearer <jwt>  (dashboard session)
- *   2. X-PayGate-Admin: ed25519:<base64-pub>:<base64-sig>  (operator script)
+ *   2. X-Limen-Admin: ed25519:<base64-pub>:<base64-sig>  (operator script)
  *
  * On success, populates `c.var.auth = { kind, subject, projectId? }`.
- * On failure, throws PayGateError(UNAUTHORIZED) — the error middleware
+ * On failure, throws LimenError(UNAUTHORIZED) — the error middleware
  * renders the canonical envelope.
  */
 
@@ -53,18 +53,18 @@ export function authMiddleware(options: { requireRole?: AuthContext['role'] } = 
   return async (c, next) => {
     const env = getEnv();
     const authz = c.req.header('authorization');
-    const admin = c.req.header('x-paygate-admin');
+    const admin = c.req.header('x-limen-admin');
 
     let auth: AuthContext | null = null;
 
     if (typeof admin === 'string' && admin.length > 0) {
       const body = c.get('rawBody') ?? Buffer.from('');
       const result = verifyAdminSignature(admin, { method: c.req.method, path: c.req.path, body }, {
-        allowedKeys: env.PAYGATE_ADMIN_PUBKEY_ALLOWLIST,
+        allowedKeys: env.LIMEN_ADMIN_PUBKEY_ALLOWLIST,
       });
       if (!result.ok) {
         metrics.authFailuresTotal.labels('ed25519', result.reason).inc();
-        throw new PayGateError({
+        throw new LimenError({
           code: ErrorCode.UNAUTHORIZED,
           detail: `admin signature rejected: ${result.reason}`,
         });
@@ -74,19 +74,19 @@ export function authMiddleware(options: { requireRole?: AuthContext['role'] } = 
       const token = authz.slice(7).trim();
       if (token.length === 0) {
         metrics.authFailuresTotal.labels('jwt', 'empty').inc();
-        throw new PayGateError({ code: ErrorCode.UNAUTHORIZED, detail: 'empty bearer token' });
+        throw new LimenError({ code: ErrorCode.UNAUTHORIZED, detail: 'empty bearer token' });
       }
       let payload: HonoJWTPayload;
       try {
-        payload = await jwtVerify(token, env.PAYGATE_JWT_SECRET, 'HS256');
+        payload = await jwtVerify(token, env.LIMEN_JWT_SECRET, 'HS256');
       } catch (e) {
         metrics.authFailuresTotal.labels('jwt', e instanceof Error ? e.name : 'unknown').inc();
-        throw new PayGateError({ code: ErrorCode.UNAUTHORIZED, detail: 'invalid or expired token' });
+        throw new LimenError({ code: ErrorCode.UNAUTHORIZED, detail: 'invalid or expired token' });
       }
       const parsed = jwtClaimsSchema.safeParse(payload);
       if (!parsed.success) {
         metrics.authFailuresTotal.labels('jwt', 'claims').inc();
-        throw new PayGateError({ code: ErrorCode.UNAUTHORIZED, detail: 'invalid jwt claims' });
+        throw new LimenError({ code: ErrorCode.UNAUTHORIZED, detail: 'invalid jwt claims' });
       }
       auth = {
         kind: 'jwt',
@@ -96,11 +96,11 @@ export function authMiddleware(options: { requireRole?: AuthContext['role'] } = 
       };
     } else {
       metrics.authFailuresTotal.labels('none', 'missing').inc();
-      throw new PayGateError({ code: ErrorCode.UNAUTHORIZED, detail: 'authentication required' });
+      throw new LimenError({ code: ErrorCode.UNAUTHORIZED, detail: 'authentication required' });
     }
 
     if (options.requireRole !== undefined && !hasAtLeastRole(auth.role, options.requireRole)) {
-      throw new PayGateError({
+      throw new LimenError({
         code: ErrorCode.FORBIDDEN,
         detail: `requires role ${options.requireRole}; have ${auth.role}`,
       });
@@ -131,7 +131,7 @@ export function rawBodyMiddleware(maxBytes = 5 * 1024 * 1024): MiddlewareHandler
     const ab = await c.req.arrayBuffer();
     const buf = Buffer.from(ab);
     if (buf.length > maxBytes) {
-      throw new PayGateError({
+      throw new LimenError({
         code: ErrorCode.VALIDATION_FAILED,
         detail: `body exceeds ${maxBytes} bytes`,
       });

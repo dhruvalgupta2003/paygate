@@ -26,16 +26,16 @@ async function bootstrap() {
     try {
       const { worker } = await import('./mocks/browser');
       await worker.start({ onUnhandledRequest: 'bypass' });
-      console.info('[paygate] MSW mocking enabled');
+      console.info('[limen] MSW mocking enabled');
     } catch (err) {
       console.warn(
-        '[paygate] MSW could not start (continuing without mocks).',
+        '[limen] MSW could not start (continuing without mocks).',
         err,
       );
     }
   } else {
     console.info(
-      `[paygate] live API mode (VITE_API_URL=${import.meta.env['VITE_API_URL'] ?? 'http://localhost:4020'})`,
+      `[limen] live API mode (VITE_API_URL=${import.meta.env['VITE_API_URL'] ?? 'http://localhost:4020'})`,
     );
   }
 

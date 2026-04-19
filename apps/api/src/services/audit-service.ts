@@ -9,7 +9,7 @@ import { newUuid } from '../lib/id.js';
 /**
  * Hash-chained append-only audit log.
  *
- * Row layout matches packages/paygate-node/src/analytics/audit-log.ts:
+ * Row layout matches packages/limen-node/src/analytics/audit-log.ts:
  *   { id, at, actor, action, target, meta, prev, hash }
  * where hash = SHA-256(prev || "|" || canonical_json(row_without_hash))
  */

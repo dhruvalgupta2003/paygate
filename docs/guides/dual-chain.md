@@ -22,9 +22,9 @@ endpoints:
 
 ## How agents choose
 
-When PayGate issues a 402, it includes a single `chain` the agent must
+When Limen issues a 402, it includes a single `chain` the agent must
 pay on. To offer multiple chains, the agent asks for a specific one via
-`Accept-Chain: solana` on the initial request. PayGate then issues the
+`Accept-Chain: solana` on the initial request. Limen then issues the
 402 for that chain (falling back to `defaults.chain`).
 
 ```bash

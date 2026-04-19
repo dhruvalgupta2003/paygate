@@ -1,4 +1,4 @@
-# PayGate examples
+# Limen examples
 
 Runnable, minimal example apps.  Each is self-contained and runs without the
 rest of the monorepo.  Every example targets testnet so you can run them

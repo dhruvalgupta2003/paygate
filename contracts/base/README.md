@@ -1,6 +1,6 @@
-# PayGate Base contracts
+# Limen Base contracts
 
-Optional Solidity contracts for PayGate. Not required for basic operation —
+Optional Solidity contracts for Limen. Not required for basic operation —
 the core proxy verifies settlements off-chain. These contracts support:
 
 1. **Canonical on-chain receipts** — one immutable `Receipt` per settled
@@ -28,7 +28,7 @@ forge coverage
 
 ```bash
 forge script script/Deploy.s.sol \
-  --rpc-url $PAYGATE_BASE_RPC_URL --broadcast --verify \
+  --rpc-url $LIMEN_BASE_RPC_URL --broadcast --verify \
   --sig 'run(address,address,address)' \
   0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 \
   <your_receiver> \
@@ -52,11 +52,11 @@ forge script script/Deploy.s.sol \
 
 ## Not deployed yet
 
-This contract is optional and not part of the default PayGate deployment.
+This contract is optional and not part of the default Limen deployment.
 Operators who want on-chain receipts deploy and configure it via:
 
 ```yaml
-# paygate.config.yml
+# limen.config.yml
 advanced:
   base:
     receipts_contract: "0x..."

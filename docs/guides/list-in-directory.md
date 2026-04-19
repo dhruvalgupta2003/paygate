@@ -1,6 +1,6 @@
 # List your API in the public directory
 
-The PayGate directory is how agents discover paid APIs. Listing is
+The Limen directory is how agents discover paid APIs. Listing is
 opt-in, free, and you can unlist anytime.
 
 ## What gets published
@@ -32,11 +32,11 @@ discovery:
 
 ## Ownership proof
 
-On first submission, PayGate challenges you to sign a nonce with your
+On first submission, Limen challenges you to sign a nonce with your
 receiving wallet. This proves you control the wallet listing is tied to.
 
 ```
-paygate directory submit
+limen directory submit
 ```
 
 The CLI guides you through the signature (Base → EIP-191 message; Solana
@@ -45,8 +45,8 @@ The CLI guides you through the signature (Base → EIP-191 message; Solana
 ## Updating and unlisting
 
 ```
-paygate directory update     # re-publishes metadata
-paygate directory unlist     # marks your listing hidden; retained 30 days
+limen directory update     # re-publishes metadata
+limen directory unlist     # marks your listing hidden; retained 30 days
 ```
 
 Unlisting does **not** delete historical traffic; it just hides the

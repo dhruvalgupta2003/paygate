@@ -9,7 +9,7 @@ on:
       - main
     paths:
       - "apps/dashboard/**"
-      - "packages/paygate-node/**" # dashboard consumes types
+      - "packages/limen-node/**" # dashboard consumes types
       - ".github/workflows/dashboard-preview.yml"
 
 concurrency:
@@ -58,7 +58,7 @@ jobs:
       - name: Build dashboard
         working-directory: apps/dashboard
         env:
-          VITE_API_URL: ${{ vars.PREVIEW_API_URL || 'https://preview-api.paygate.dev' }}
+          VITE_API_URL: ${{ vars.PREVIEW_API_URL || 'https://preview-api.limen.dev' }}
           VITE_PREVIEW_BANNER: "true"
         run: pnpm build
 

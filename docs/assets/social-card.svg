@@ -1,62 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  1200×630 OG / Twitter card.
-  Warm paper on ink ground. Mark left, wordmark + tagline center-right,
-  technical chips bottom-left, signature bottom-right.
+  1200×630 OG / Twitter card. Ink ground with bone forms.
+  Composition: hairline-grid background, mark upper-left, wordmark center,
+  tagline below, technical chips bottom row, signature bottom-right.
+
+  The horizontal hairline through the optical center is the *meta-threshold*
+  — the same gap the mark itself describes, extended across the entire card.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img"
-     aria-label="PayGate — x402 paywall for AI agent traffic">
-  <title>PayGate — x402 paywall for AI agent traffic</title>
+     aria-label="Limen — the threshold for agent payments">
+  <title>Limen — the threshold for agent payments</title>
 
-  <rect width="1200" height="630" fill="#0A0C10"/>
+  <rect width="1200" height="630" fill="#0A0A0C"/>
 
-  <!-- hairline technical grid -->
-  <g stroke="#F5F1E8" stroke-opacity="0.04" stroke-width="1">
-    <path d="M 0 105 H 1200 M 0 210 H 1200 M 0 315 H 1200 M 0 420 H 1200 M 0 525 H 1200"/>
+  <!-- hairline architectural grid -->
+  <g stroke="#F7F5EF" stroke-opacity="0.04" stroke-width="1">
+    <path d="M 0 105 H 1200 M 0 210 H 1200 M 0 420 H 1200 M 0 525 H 1200"/>
     <path d="M 150 0 V 630 M 300 0 V 630 M 450 0 V 630 M 600 0 V 630 M 750 0 V 630 M 900 0 V 630 M 1050 0 V 630"/>
   </g>
 
-  <!-- mark -->
-  <g fill="#F5F1E8" transform="translate(80,160) scale(1.2)">
-    <rect x="44"  y="32"  width="44" height="192" rx="3"/>
-    <rect x="168" y="32"  width="44" height="192" rx="3"/>
-    <rect x="106" y="106" width="44" height="44"  rx="3"/>
+  <!-- meta-threshold: the limen extended across the entire card -->
+  <line x1="0" y1="315" x2="1200" y2="315" stroke="#F7F5EF" stroke-opacity="0.10" stroke-width="1"/>
+
+  <!-- mark, scaled and offset to upper-left, sitting above the meta-threshold -->
+  <g fill="#F7F5EF" transform="translate(80,140)">
+    <rect x="0"  y="0"   width="280" height="20" rx="3"/>
+    <rect x="0"  y="84"  width="280" height="36" rx="3"/>
   </g>
 
-  <!-- wordmark -->
-  <text x="450" y="295"
+  <!-- wordmark, centered between mark and tagline -->
+  <text x="80" y="430"
         font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
-        font-weight="500" font-size="128"
-        letter-spacing="-0.04em" fill="#F5F1E8">paygate</text>
+        font-weight="500" font-size="156"
+        letter-spacing="-0.045em" fill="#F7F5EF">limen</text>
 
   <!-- tagline -->
-  <text x="455" y="355"
+  <text x="84" y="488"
         font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
-        font-weight="400" font-size="34"
-        letter-spacing="-0.015em" fill="#9A9A88">pay-per-call for ai agents</text>
+        font-weight="400" font-size="32"
+        letter-spacing="-0.012em" fill="#F7F5EF" fill-opacity="0.62">the threshold for agent payments</text>
 
   <!-- technical chips -->
   <g font-family="ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, monospace"
-     font-size="20" fill="#F5F1E8">
-    <g transform="translate(80,510)">
-      <rect width="148" height="44" fill="none" stroke="#F5F1E8" stroke-opacity="0.22"/>
-      <text x="16" y="29" letter-spacing="2">HTTP 402</text>
+     font-size="18" fill="#F7F5EF">
+    <g transform="translate(80,548)">
+      <rect width="132" height="40" fill="none" stroke="#F7F5EF" stroke-opacity="0.22"/>
+      <text x="14" y="26" letter-spacing="2.4">HTTP 402</text>
     </g>
-    <g transform="translate(248,510)">
-      <rect width="124" height="44" fill="none" stroke="#F5F1E8" stroke-opacity="0.22"/>
-      <text x="16" y="29" letter-spacing="2">USDC</text>
+    <g transform="translate(232,548)">
+      <rect width="100" height="40" fill="none" stroke="#F7F5EF" stroke-opacity="0.22"/>
+      <text x="14" y="26" letter-spacing="2.4">USDC</text>
     </g>
-    <g transform="translate(392,510)">
-      <rect width="164" height="44" fill="none" stroke="#F5F1E8" stroke-opacity="0.22"/>
-      <text x="16" y="29" letter-spacing="2">EIP-3009</text>
+    <g transform="translate(352,548)">
+      <rect width="124" height="40" fill="none" stroke="#F7F5EF" stroke-opacity="0.22"/>
+      <text x="14" y="26" letter-spacing="2.4">EIP-3009</text>
     </g>
-    <g transform="translate(576,510)">
-      <rect width="204" height="44" fill="none" stroke="#F5F1E8" stroke-opacity="0.22"/>
-      <text x="16" y="29" letter-spacing="2">BASE · SOLANA</text>
+    <g transform="translate(496,548)">
+      <rect width="178" height="40" fill="none" stroke="#F7F5EF" stroke-opacity="0.22"/>
+      <text x="14" y="26" letter-spacing="2.4">BASE · SOLANA</text>
     </g>
   </g>
 
-  <text x="1120" y="580" text-anchor="end"
+  <!-- signature -->
+  <text x="1120" y="586" text-anchor="end"
         font-family="ui-monospace, 'JetBrains Mono', monospace"
-        font-size="16" letter-spacing="3" fill="#7A7A6A">PAYGATE.DEV</text>
+        font-size="14" letter-spacing="3" fill="#7A7A6A">LIMEN.AI</text>
 </svg>

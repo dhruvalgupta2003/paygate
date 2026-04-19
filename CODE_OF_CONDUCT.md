@@ -1,6 +1,6 @@
 # Code of Conduct
 
-PayGate adopts the **Contributor Covenant v2.1**.
+Limen adopts the **Contributor Covenant v2.1**.
 
 ---
 
@@ -45,7 +45,7 @@ behaviour that they deem inappropriate, threatening, offensive, or harmful.
 
 Instances of abusive, harassing, or otherwise unacceptable behaviour may be
 reported to the community leaders responsible for enforcement at
-`conduct@paygate.dev`. All complaints will be reviewed and investigated
+`conduct@limen.dev`. All complaints will be reviewed and investigated
 promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of

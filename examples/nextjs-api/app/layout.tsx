@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 
 export const metadata = {
-  title: 'PayGate × Next.js',
-  description: 'PayGate example: Next.js App Router with x402 paywall.',
+  title: 'Limen × Next.js',
+  description: 'Limen example: Next.js App Router with x402 paywall.',
 };
 
 interface RootLayoutProps {

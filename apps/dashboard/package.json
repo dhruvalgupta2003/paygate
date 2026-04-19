@@ -1,8 +1,8 @@
 {
-  "name": "@paygate/dashboard",
+  "name": "@limen/dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "PayGate operator dashboard — revenue, transactions, endpoints, agents, and compliance.",
+  "description": "Limen operator dashboard — revenue, transactions, endpoints, agents, and compliance.",
   "type": "module",
   "scripts": {
     "dev": "vite",

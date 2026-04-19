@@ -2,10 +2,10 @@
   "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [["@paygate/node"]],
+  "fixed": [["@limen/node"]],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["paygate-dashboard", "paygate-api"]
+  "ignore": ["limen-dashboard", "limen-api"]
 }

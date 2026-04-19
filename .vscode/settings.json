@@ -24,7 +24,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "python.analysis.typeCheckingMode": "strict",
-  "python.analysis.extraPaths": ["packages/paygate-python"],
+  "python.analysis.extraPaths": ["packages/limen-python"],
   "files.exclude": {
     "**/dist": true,
     "**/.turbo": true,

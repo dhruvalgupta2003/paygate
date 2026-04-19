@@ -1,19 +1,19 @@
 /**
- * PayGate Example — Express API
+ * Limen Example — Express API
  *
- * Demonstrates drop-in PayGate middleware charging $0.001 USDC per call on
+ * Demonstrates drop-in Limen middleware charging $0.001 USDC per call on
  * Base Sepolia (testnet). The middleware issues a 402 with x402-compliant
  * PaymentRequirements when no X-PAYMENT header is present, and lets the
  * request through once the facilitator has verified an on-chain payment.
  *
  * Run:
- *   PAYGATE_WALLET_BASE_SEPOLIA=0xYourReceivingAddress \
+ *   LIMEN_WALLET_BASE_SEPOLIA=0xYourReceivingAddress \
  *   REDIS_URL=redis://127.0.0.1:6379 \
  *   npm run dev
  */
 import express, { type Request, type Response } from 'express';
 import Redis from 'ioredis';
-import { paygate } from '@paygate/node/express';
+import { limen } from '@limen/node/express';
 import {
   BaseAdapter,
   RedisNonceStore,
@@ -21,13 +21,13 @@ import {
   DefaultComplianceScreen,
   FacilitatorClient,
   createLogger,
-} from '@paygate/node';
+} from '@limen/node';
 
 const PORT = Number(process.env.PORT ?? 3000);
 
-const receivingWallet = process.env.PAYGATE_WALLET_BASE_SEPOLIA;
+const receivingWallet = process.env.LIMEN_WALLET_BASE_SEPOLIA;
 if (!receivingWallet) {
-  throw new Error('PAYGATE_WALLET_BASE_SEPOLIA is required (testnet receive-only address).');
+  throw new Error('LIMEN_WALLET_BASE_SEPOLIA is required (testnet receive-only address).');
 }
 
 const redisUrl = process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
@@ -37,7 +37,7 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 
 app.use(
-  paygate({
+  limen({
     config: {
       version: 1,
       wallets: { 'base-sepolia': receivingWallet },
@@ -85,7 +85,7 @@ app.use(
     adapters: {
       'base-sepolia': new BaseAdapter({
         chainId: 'base-sepolia',
-        rpcUrl: process.env.PAYGATE_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
+        rpcUrl: process.env.LIMEN_BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org',
         receivingWallet,
       }),
     },
@@ -131,5 +131,5 @@ app.post('/api/v1/score', (req: Request, res: Response) => {
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console -- bootstrap banner only
-  console.log(`[paygate-express] listening on :${PORT} (chain=base-sepolia)`);
+  console.log(`[limen-express] listening on :${PORT} (chain=base-sepolia)`);
 });

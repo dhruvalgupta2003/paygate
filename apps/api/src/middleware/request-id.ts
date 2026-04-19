@@ -3,7 +3,7 @@ import { newUlid } from '../lib/id.js';
 
 /**
  * Request ID middleware.  Honours an inbound `X-Request-Id` only when it
- * matches the PayGate ULID shape; otherwise mints a fresh ULID.  The ID is
+ * matches the Limen ULID shape; otherwise mints a fresh ULID.  The ID is
  * stored in context and echoed back in both the response header and every
  * error envelope.
  */

@@ -5,7 +5,7 @@ export default {
   out: './migrations',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.PAYGATE_DATABASE_URL ?? 'postgresql://paygate:paygate@localhost:5432/paygate',
+    url: process.env.LIMEN_DATABASE_URL ?? 'postgresql://limen:limen@localhost:5432/limen',
   },
   strict: true,
   verbose: true,

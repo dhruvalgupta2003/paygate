@@ -1,12 +1,12 @@
-# PayGate Example — Hono
+# Limen Example — Hono
 
-Hono app running on `@hono/node-server`, protected by `@paygate/node/hono`.
+Hono app running on `@hono/node-server`, protected by `@limen/node/hono`.
 Charges **$0.001 USDC per call** on **Base Sepolia**.
 
 ## 3-step quickstart
 
 ```bash
-cp .env.example .env                # set PAYGATE_WALLET_BASE_SEPOLIA
+cp .env.example .env                # set LIMEN_WALLET_BASE_SEPOLIA
 docker compose up                   # redis + hono + optional proxy sidecar
 bash pay.sh                         # walk through the 402 -> sign -> retry
 ```
@@ -15,7 +15,7 @@ Local without Docker:
 
 ```bash
 pnpm install
-pnpm --filter paygate-example-hono-api dev
+pnpm --filter limen-example-hono-api dev
 ```
 
 ## Endpoints

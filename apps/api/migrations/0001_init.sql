@@ -1,4 +1,4 @@
--- PayGate API initial schema.
+-- Limen API initial schema.
 -- All tables carry BIGINT ids where possible; primary keys are UUIDs stored as TEXT
 -- to keep ORM-agnostic reads cheap in analytics queries.
 

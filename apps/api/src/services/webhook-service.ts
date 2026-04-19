@@ -2,7 +2,7 @@ import { and, asc, eq, isNull, lt, or } from 'drizzle-orm';
 import type { Database } from '../db/index.js';
 import { webhookDeliveries, webhookSubscriptions } from '../db/schema.js';
 import type { WebhookDelivery, WebhookSubscription } from '../db/schema.js';
-import { ErrorCode, PayGateError } from '../lib/errors.js';
+import { ErrorCode, LimenError } from '../lib/errors.js';
 import { newUuid } from '../lib/id.js';
 import { getLogger } from '../lib/logger.js';
 import { metrics } from '../lib/metrics.js';
@@ -16,7 +16,7 @@ import { getEnv } from '../config/env.js';
  *   1s, 2s, 5s, 15s, 60s, 5m, 30m, 1h, 2h, 4h, 8h, 16h
  *
  * Signatures: HMAC-SHA256 over `${t}.` + raw_body, emitted as
- *   X-PayGate-Signature: t=<unix>,v1=<hex>
+ *   X-Limen-Signature: t=<unix>,v1=<hex>
  *
  * Business-logic correctness (redeliveries across rotated secrets, exponential
  * body compression, dead-letter metrics export) is still TODO; see
@@ -77,7 +77,7 @@ export class WebhookService {
       .returning();
     const row = inserted[0];
     if (row === undefined) {
-      throw new PayGateError({ code: ErrorCode.INTERNAL, detail: 'subscription insert returned no row' });
+      throw new LimenError({ code: ErrorCode.INTERNAL, detail: 'subscription insert returned no row' });
     }
     return row;
   }
@@ -101,7 +101,7 @@ export class WebhookService {
         .limit(1);
       const current = existing[0];
       if (current === undefined) {
-        throw new PayGateError({ code: ErrorCode.NOT_FOUND, detail: 'subscription not found' });
+        throw new LimenError({ code: ErrorCode.NOT_FOUND, detail: 'subscription not found' });
       }
       const rows = await tx
         .update(webhookSubscriptions)
@@ -116,7 +116,7 @@ export class WebhookService {
       return rows[0];
     });
     if (updated === undefined) {
-      throw new PayGateError({ code: ErrorCode.INTERNAL, detail: 'rotate returned no row' });
+      throw new LimenError({ code: ErrorCode.INTERNAL, detail: 'rotate returned no row' });
     }
     return updated;
   }
@@ -170,7 +170,7 @@ export class WebhookService {
       .returning();
     const row = updated[0];
     if (row === undefined) {
-      throw new PayGateError({ code: ErrorCode.NOT_FOUND, detail: 'delivery not found' });
+      throw new LimenError({ code: ErrorCode.NOT_FOUND, detail: 'delivery not found' });
     }
     return row;
   }
@@ -250,7 +250,7 @@ export class WebhookService {
     const rawBody = Buffer.from(JSON.stringify(delivery.payload), 'utf-8');
 
     // Resolve secret: prefer subscription secret; fallback to global for ad-hoc events.
-    let secret = env.PAYGATE_WEBHOOK_SIGNING_SECRET;
+    let secret = env.LIMEN_WEBHOOK_SIGNING_SECRET;
     if (delivery.subscriptionId !== null && delivery.subscriptionId !== undefined) {
       const sub = await this.deps.db
         .select({ secret: webhookSubscriptions.secret })
@@ -263,7 +263,7 @@ export class WebhookService {
     const { header: sigHeader } = signWebhook(secret, rawBody);
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), env.PAYGATE_WEBHOOK_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), env.LIMEN_WEBHOOK_TIMEOUT_MS);
     const started = process.hrtime.bigint();
 
     try {
@@ -271,11 +271,11 @@ export class WebhookService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'User-Agent': 'PayGate-Webhook/1.0 (+https://paygate.dev)',
-          'X-PayGate-Id': extractPayloadId(delivery.payload),
-          'X-PayGate-Event': delivery.event,
-          'X-PayGate-Signature': sigHeader,
-          'X-PayGate-Attempt': String(delivery.attempt + 1),
+          'User-Agent': 'Limen-Webhook/1.0 (+https://limen.dev)',
+          'X-Limen-Id': extractPayloadId(delivery.payload),
+          'X-Limen-Event': delivery.event,
+          'X-Limen-Signature': sigHeader,
+          'X-Limen-Attempt': String(delivery.attempt + 1),
         },
         body: rawBody,
         signal: controller.signal,

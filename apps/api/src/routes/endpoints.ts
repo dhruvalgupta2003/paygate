@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { getDb } from '../db/index.js';
-import { endpoints, transactions } from '../db/schema.js';
+import { endpoints } from '../db/schema.js';
 
 const patchBody = z
   .object({
@@ -105,7 +105,7 @@ export const endpointsRoutes = new Hono()
         Array.isArray(ep.method) && ep.method.length > 0
           ? (ep.method[0] as string)
           : 'ANY',
-      description: ep.description ?? null,
+      description: null,
       price_usdc_micros: ep.priceUsdcMicros.toString(),
       enabled: ep.enabled,
       tags: ep.tags ?? [],

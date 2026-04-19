@@ -1,6 +1,6 @@
 # Architecture
 
-PayGate is designed to be **stateless at the request layer, durable at the
+Limen is designed to be **stateless at the request layer, durable at the
 analytics layer, and pluggable at the chain layer**. This doc explains how
 the pieces fit together and the tradeoffs we've made.
 
@@ -15,7 +15,7 @@ the pieces fit together and the tradeoffs we've made.
                                    │  HTTP/1.1 or HTTP/2
                                    ▼
 ┌────────────────────────────────────────────────────────────────────────┐
-│                          PayGate Proxy Layer (L7)                       │
+│                          Limen Proxy Layer (L7)                       │
 │                                                                        │
 │   Listener (Hono/Fastify, H2/HTTPS, keep-alive)                        │
 │     │                                                                  │
@@ -63,7 +63,7 @@ the pieces fit together and the tradeoffs we've made.
 Agent ── HTTPS ──▶ [your-api  (Express/Fastify/Hono/FastAPI)]
                           │
                           ▼
-                  paygate middleware
+                  limen middleware
                           │
                           ▼
                      your route handler
@@ -77,28 +77,28 @@ Agent ── HTTPS ──▶ [your-api  (Express/Fastify/Hono/FastAPI)]
 ### 2. Sidecar proxy
 
 ```
-Agent ── HTTPS ──▶ [paygate  :4021] ── HTTP ──▶ [your-api  :3000]
+Agent ── HTTPS ──▶ [limen  :4021] ── HTTP ──▶ [your-api  :3000]
                         │
                    Redis + PG
 ```
 
-- PayGate runs alongside the service (same pod / box).
+- Limen runs alongside the service (same pod / box).
 - The upstream never sees unpaid traffic.
 - Recommended for most production deployments.
 
 ### 3. Gateway proxy
 
 ```
-Agent ── HTTPS ──▶ [paygate gateway] ──▶ service-a
+Agent ── HTTPS ──▶ [limen gateway] ──▶ service-a
                        │              ──▶ service-b
                        │              ──▶ service-c
                    Redis + PG
 ```
 
-- PayGate fronts many services with distinct configs.
+- Limen fronts many services with distinct configs.
 - Suitable for hosted offerings or internal platforms.
 
-### 4. Managed (paygate.dev)
+### 4. Managed (limen.dev)
 
 - We host the proxy. You point DNS. Traffic terminates at our edge and is
   forwarded to your origin over mTLS.
@@ -117,7 +117,7 @@ Agent ── HTTPS ──▶ [paygate gateway] ──▶ service-a
 
 ### Config matcher
 
-- Compiled from `paygate.config.yml` at boot.
+- Compiled from `limen.config.yml` at boot.
 - Uses a radix trie for O(log n) prefix matches, then checks globs.
 - First match wins; later matches are irrelevant.
 
@@ -142,7 +142,7 @@ Agent ── HTTPS ──▶ [paygate gateway] ──▶ service-a
 
 ### Replay guard
 
-- Redis: `SET paygate:nonce:{nonce} "" NX EX {ttl}`.
+- Redis: `SET limen:nonce:{nonce} "" NX EX {ttl}`.
 - Return value 1 → nonce fresh, proceed.
 - Return value 0 → nonce reused, reject with `NONCE_REUSED`.
 - Nonce TTL = `payment_ttl_seconds + 60 s` buffer.
@@ -244,9 +244,9 @@ Read replicas serve the dashboard; writes go to the primary.
 - The dashboard backend **never** accepts cleartext receiving wallets from
   users; it accepts signed attestations (wallet signs a challenge, we verify).
 - Webhook signatures are HMAC-SHA256 over the raw body, header:
-  `X-PayGate-Signature: t=…,v1=…`.
+  `X-Limen-Signature: t=…,v1=…`.
 - Admin API requires either a session JWT (dashboard) or a signed request
-  (`X-PayGate-Admin`: `ed25519:<pubkey>:<sig>`).
+  (`X-Limen-Admin`: `ed25519:<pubkey>:<sig>`).
 
 ---
 
@@ -254,7 +254,7 @@ Read replicas serve the dashboard; writes go to the primary.
 
 - USDC only in v0.x. Any stable can be added; USDC is 98%+ of volume.
 - No built-in subscription pricing — x402 is pay-per-call by nature. For
-  monthly plans, layer PayGate under a token-gated API.
+  monthly plans, layer Limen under a token-gated API.
 - Single-region deployments should be fine up to ~10k RPS. Multi-region
   requires pinning the rate-limit Redis to a region per wallet shard.
 

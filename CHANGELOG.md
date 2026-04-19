@@ -9,9 +9,9 @@ Versioning: [SemVer](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Initial public alpha.
-- `@paygate/node` npm package with Express, Fastify, Hono, Next.js adapters.
-- `paygate` PyPI package with FastAPI, Flask, Django, Starlette adapters.
-- Standalone proxy binary (`paygate start`) and Docker image.
+- `@limen/node` npm package with Express, Fastify, Hono, Next.js adapters.
+- `limen` PyPI package with FastAPI, Flask, Django, Starlette adapters.
+- Standalone proxy binary (`limen start`) and Docker image.
 - USDC settlement verification on Base + Solana with Coinbase facilitator
   and direct-RPC fallback.
 - Replay protection, TTL enforcement, idempotent response caching.

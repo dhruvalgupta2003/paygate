@@ -23,8 +23,8 @@ body:
     attributes:
       label: Which surfaces does this touch?
       options:
-        - label: "@paygate/node (npm)"
-        - label: "paygate (PyPI)"
+        - label: "@limen/node (npm)"
+        - label: "limen (PyPI)"
         - label: Dashboard
         - label: Backend API
         - label: Contracts

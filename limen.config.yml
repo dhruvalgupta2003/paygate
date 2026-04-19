@@ -1,0 +1,125 @@
+# # Limen reference configuration
+# # ------------------------------------------------------------------------------
+# # Drop this file next to your API, then run:
+# #   npx @limen/node start --config limen.config.yml --upstream http://localhost:3000
+# # Or, for Python:
+# #   limen start --config limen.config.yml --upstream http://localhost:3000
+# #
+# # Every field is validated with a strict schema. Unknown keys are rejected.
+
+# version: 1
+
+# # ---- Identity ---------------------------------------------------------------
+# project:
+#   name: demo-api
+#   slug: demo-api             # appears in the public directory (lowercase, kebab)
+#   description: Example Limen-enabled API.
+#   contact: hello@example.com
+#   homepage: https://example.com
+
+# # ---- Wallets that will receive USDC ----------------------------------------
+# wallets:
+#   base: "0x0000000000000000000000000000000000000000"
+#   solana: "11111111111111111111111111111111"
+
+# # ---- Default settlement behaviour ------------------------------------------
+# defaults:
+#   chain: base                 # base | base-sepolia | solana | solana-devnet
+#   currency: USDC              # only USDC is supported today
+#   confirmations: 2            # Base: number of blocks; Solana: "confirmed" | "finalized"
+#   payment_ttl_seconds: 300    # Reject payment authorizations older than this
+#   facilitator: coinbase       # coinbase | self (self = direct RPC verification)
+
+# # ---- Endpoints --------------------------------------------------------------
+# # Match order matters: first match wins. Globs support `*` and `**`.
+# # `price_usdc` is the fixed price per request (6 decimal precision).
+# # `price` can alternatively dispatch based on method + query + header rules.
+# endpoints:
+#   - path: /healthz
+#     price_usdc: 0              # free
+#     description: Health check (always free).
+
+#   - path: /api/v1/weather/*
+#     method: [GET]
+#     price_usdc: 0.001
+#     description: Per-city weather lookup.
+#     tags: [weather, b2a]
+
+#   - path: /api/v1/premium/**
+#     price_usdc: 0.05
+#     chain: base                 # override default
+#     description: Premium analytics endpoints.
+#     tags: [analytics]
+
+#   - path: /api/v1/search
+#     method: [GET, POST]
+#     price:
+#       base_usdc: 0.002
+#       surge:
+#         header: x-priority      # if "high" is set, charge 10x
+#         values:
+#           high: 10
+#     description: Search with optional surge pricing.
+
+# # ---- Caching (reduces cost for agents, increases your margin) --------------
+# cache:
+#   enabled: true
+#   driver: redis                 # redis | memory
+#   default_ttl_seconds: 60
+#   rules:
+#     - path: /api/v1/weather/*
+#       ttl_seconds: 300
+#     - path: /api/v1/premium/**
+#       ttl_seconds: 0            # never cache
+
+# # ---- Rate limiting (per wallet, per endpoint) ------------------------------
+# rate_limits:
+#   - scope: wallet
+#     limit: 600
+#     window_seconds: 60
+#   - scope: ip
+#     limit: 120
+#     window_seconds: 60
+
+# # ---- Compliance -------------------------------------------------------------
+# compliance:
+#   sanctions_screening: true     # Circle + OFAC blocklist
+#   geo_blocklist: []             # ISO country codes e.g. ["KP", "IR"]
+#   travel_rule_threshold_usd: 3000
+
+# # ---- Webhooks (POSTs on every successful settlement) -----------------------
+# webhooks:
+#   - url: https://example.com/limen/webhook
+#     secret_env: WEBHOOK_SHARED_SECRET
+#     events: [payment.settled, payment.refunded, endpoint.rate_limited]
+
+# # ---- Discovery (public API directory listing) ------------------------------
+# discovery:
+#   listed: true
+#   categories: [weather, analytics]
+#   openapi_url: /openapi.json
+#   example_agent_prompt: |
+#     Get the 5-day forecast for San Francisco. Pay with USDC on Base.
+
+# # ---- Advanced ---------------------------------------------------------------
+# advanced:
+#   upstream_timeout_ms: 15000
+#   max_request_body_mb: 5
+#   trust_proxy: true
+#   proxy_protocol: false
+#   allow_free_tier:
+#     requests_per_day: 100       # free preview allowance per IP
+
+
+version: 1
+project: { name: demo-api, slug: demo-api }
+wallets:
+  base-sepolia: "0x046c883149e8C099B61e5BbF2Ff52024710385Fb"   # can be the same as the agent for round-trip demos
+defaults:
+  chain: base-sepolia
+  facilitator: self                        # we're not using Coinbase's facilitator
+  payment_ttl_seconds: 300
+  confirmations: 1                         # 1 block on Sepolia is plenty
+endpoints:
+  - path: /api/v1/weather/*
+    price_usdc: 0.001

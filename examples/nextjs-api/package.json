@@ -1,8 +1,8 @@
 {
-  "name": "paygate-example-nextjs-api",
+  "name": "limen-example-nextjs-api",
   "version": "0.1.0",
   "private": true,
-  "description": "PayGate example: Next.js App Router protected by @paygate/node/next.",
+  "description": "Limen example: Next.js App Router protected by @limen/node/next.",
   "license": "MIT",
   "scripts": {
     "dev": "next dev -p 3000",
@@ -11,7 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@paygate/node": "workspace:*",
+    "@limen/node": "workspace:*",
     "next": "^14.2.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

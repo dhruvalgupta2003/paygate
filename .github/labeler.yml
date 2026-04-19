@@ -4,12 +4,12 @@
 area/node-sdk:
   - changed-files:
       - any-glob-to-any-file:
-          - "packages/paygate-node/**"
+          - "packages/limen-node/**"
 
 area/python-sdk:
   - changed-files:
       - any-glob-to-any-file:
-          - "packages/paygate-python/**"
+          - "packages/limen-python/**"
 
 area/dashboard:
   - changed-files:

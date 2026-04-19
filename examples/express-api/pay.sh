@@ -32,7 +32,7 @@ cat <<'EOF'
     - Sign with the agent's hot wallet.
     - Base64 the resulting PaymentAuth and re-send:
         curl -H "X-PAYMENT: <base64>" ${BASE}/api/v1/weather/sf
-    - The facilitator verifies + settles, PayGate unlocks, your handler runs.
+    - The facilitator verifies + settles, Limen unlocks, your handler runs.
 
     See docs/payment-flow.md for the full handshake specification.
 EOF

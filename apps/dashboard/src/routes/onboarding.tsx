@@ -45,7 +45,7 @@ function ConnectWallet() {
   return (
     <div>
       <h3 className="text-lg font-semibold">Connect a receiving wallet</h3>
-      <p className="mt-1 text-sm text-ink-500">PayGate never sees private keys — only the public address USDC is sent to.</p>
+      <p className="mt-1 text-sm text-ink-500">Limen never sees private keys — only the public address USDC is sent to.</p>
     </div>
   );
 }

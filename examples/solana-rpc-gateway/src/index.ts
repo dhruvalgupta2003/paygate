@@ -1,9 +1,9 @@
 /**
- * PayGate Example — Monetised Solana RPC Gateway.
+ * Limen Example — Monetised Solana RPC Gateway.
  *
  * A tiny Hono server that accepts a whitelist of JSON-RPC methods
  * (`getBlockHeight`, `getBalance`, `getTransaction`) and proxies them to an
- * upstream Solana RPC endpoint. PayGate charges $0.00025 USDC per call (on
+ * upstream Solana RPC endpoint. Limen charges $0.00025 USDC per call (on
  * Solana devnet by default) before the request is forwarded.
  *
  * Use cases:
@@ -15,7 +15,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import Redis from 'ioredis';
 import { request as undiciRequest } from 'undici';
-import { paygateHono } from '@paygate/node/hono';
+import { limenHono } from '@limen/node/hono';
 import {
   SolanaAdapter,
   RedisNonceStore,
@@ -23,13 +23,13 @@ import {
   DefaultComplianceScreen,
   FacilitatorClient,
   createLogger,
-} from '@paygate/node';
+} from '@limen/node';
 
 const PORT = Number(process.env.PORT ?? 4022);
 
-const receivingWallet = process.env.PAYGATE_WALLET_SOLANA_DEVNET;
+const receivingWallet = process.env.LIMEN_WALLET_SOLANA_DEVNET;
 if (!receivingWallet) {
-  throw new Error('PAYGATE_WALLET_SOLANA_DEVNET is required.');
+  throw new Error('LIMEN_WALLET_SOLANA_DEVNET is required.');
 }
 
 const upstream = process.env.SOLANA_UPSTREAM_URL ?? 'https://api.devnet.solana.com';
@@ -46,7 +46,7 @@ const app = new Hono();
 
 app.use(
   '/rpc',
-  paygateHono({
+  limenHono({
     config: {
       version: 1,
       wallets: { solana: receivingWallet },
@@ -90,7 +90,7 @@ app.use(
     adapters: {
       solana: new SolanaAdapter({
         chainId: 'solana-devnet',
-        rpcUrl: process.env.PAYGATE_SOLANA_DEVNET_RPC_URL ?? 'https://api.devnet.solana.com',
+        rpcUrl: process.env.LIMEN_SOLANA_DEVNET_RPC_URL ?? 'https://api.devnet.solana.com',
         receivingWallet,
       }),
     },
@@ -136,5 +136,5 @@ app.get('/healthz', (c) => c.json({ ok: true, upstream }));
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   // eslint-disable-next-line no-console -- bootstrap banner only
-  console.log(`[paygate-solana-rpc] listening on :${info.port} upstream=${upstream}`);
+  console.log(`[limen-solana-rpc] listening on :${info.port} upstream=${upstream}`);
 });

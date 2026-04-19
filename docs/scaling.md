@@ -1,6 +1,6 @@
 # Scaling
 
-PayGate is stateless at the request tier and scales horizontally. This doc
+Limen is stateless at the request tier and scales horizontally. This doc
 is the operator-oriented guide: how big can it get, where it breaks, and
 how to tune each layer.
 
@@ -8,7 +8,7 @@ how to tune each layer.
 
 ## Capacity (single node)
 
-Measured on a 4 vCPU / 8 GB instance running `paygate-proxy` v0.1 against
+Measured on a 4 vCPU / 8 GB instance running `limen-proxy` v0.1 against
 Base mainnet with facilitator mode:
 
 | Request type | p50 latency | p99 latency | RPS sustained |
@@ -29,7 +29,7 @@ Bottlenecks (in order):
 
 ## Horizontal scaling
 
-PayGate is share-nothing. Scale out until your Redis or Postgres is the
+Limen is share-nothing. Scale out until your Redis or Postgres is the
 bottleneck. Recommended topology at each tier:
 
 | RPS tier | Proxy nodes | Redis | Postgres |
@@ -42,7 +42,7 @@ bottleneck. Recommended topology at each tier:
 Autoscaling triggers (Kubernetes HPA):
 
 - CPU > 70% for 2 min → scale up.
-- `paygate_verify_queue_depth` > 64 → scale up.
+- `limen_verify_queue_depth` > 64 → scale up.
 - Sustained p99 latency > 800 ms for 3 min → page.
 
 ---
@@ -79,7 +79,7 @@ Configure at least **two** per chain. We round-robin with health checks:
 - Healthy: request count + latency moving averages.
 - Unhealthy: mark on 429, 5xx, timeout. Cooldown 30 s. Exponential
   backoff on repeated failures.
-- Metric: `paygate_rpc_failures_total{provider,chain,status}`.
+- Metric: `limen_rpc_failures_total{provider,chain,status}`.
 
 Recommended pairings:
 
@@ -94,9 +94,9 @@ cost.
 ## Network path
 
 - Terminate TLS at an L4/L7 LB (AWS ALB / Google HTTPS LB / Cloudflare).
-- PayGate → Redis / Postgres over **private** network; no public egress
+- Limen → Redis / Postgres over **private** network; no public egress
   from these ports.
-- PayGate → RPC over HTTPS, pinned via
+- Limen → RPC over HTTPS, pinned via
   `advanced.rpc_cert_fingerprints` if you want cert pinning.
 
 ---
@@ -134,7 +134,7 @@ cost.
 
 ## Backpressure
 
-PayGate never drops silently. Backpressure signals:
+Limen never drops silently. Backpressure signals:
 
 - `429 RATE_LIMITED` when token bucket is empty.
 - `503 SERVICE_DEGRADED` when Redis unhealthy and safe-mode engaged.
@@ -143,6 +143,6 @@ PayGate never drops silently. Backpressure signals:
 
 Alerts:
 
-- `paygate_http_5xx_total` rate > 1%/5 min → warning.
-- `paygate_verify_failures_total{reason="rpc"}` rate > 1%/5 min → page.
-- `paygate_rate_limit_drops_total` rate > 5%/5 min → capacity review.
+- `limen_http_5xx_total` rate > 1%/5 min → warning.
+- `limen_verify_failures_total{reason="rpc"}` rate > 1%/5 min → page.
+- `limen_rate_limit_drops_total` rate > 5%/5 min → capacity review.

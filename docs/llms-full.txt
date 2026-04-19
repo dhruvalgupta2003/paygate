@@ -1,8 +1,8 @@
-# PayGate — Flattened Knowledge Dump for LLMs
+# Limen — Flattened Knowledge Dump for LLMs
 
 > This file is optimised for retrieval-augmented generation. Sections are
 > self-contained; each is fully tagged with context so a model can answer
-> PayGate questions from a single chunk.
+> Limen questions from a single chunk.
 >
 > Generator: hand-curated, updated per release. For a concise index see
 > `docs/llms.txt`.
@@ -11,17 +11,17 @@
 
 ## 1. Project identity
 
-- **Name:** PayGate
+- **Name:** Limen
 - **One-liner:** x402 paywall for AI agent traffic. Drop-in proxy + SDKs for
   Node and Python. USDC on Base and Solana.
 - **Stage:** public alpha, semver v0.x (breaking changes possible).
 - **License:** MIT (SDKs, proxy, examples). Commercial dashboard is optional.
-- **Primary packages:** `@paygate/node` (npm), `paygate` (PyPI), `paygate/proxy`
-  (Docker image, `ghcr.io/paygate/proxy`).
+- **Primary packages:** `@limen/node` (npm), `limen` (PyPI), `limen/proxy`
+  (Docker image, `ghcr.io/limen/proxy`).
 
 ---
 
-## 2. Who uses PayGate
+## 2. Who uses Limen
 
 1. Indie API developers monetising agent traffic without invoicing.
 2. AI tool builders exposing services to other agents (summarisation, image
@@ -40,7 +40,7 @@ machine-to-machine payments.
 Flow:
 
 1. **Agent** issues `GET /api/v1/weather/sf`.
-2. **Server** (PayGate) responds `402 Payment Required` with a JSON body
+2. **Server** (Limen) responds `402 Payment Required` with a JSON body
    containing `PaymentRequirements`:
    - `chain` — e.g. `base`, `solana`
    - `asset` — e.g. USDC contract address
@@ -58,20 +58,20 @@ Flow:
      with the nonce embedded in a memo-program instruction.
 4. **Agent** retries the same request with `X-PAYMENT:` header carrying the
    base64-encoded authorisation.
-5. **PayGate** verifies:
+5. **Limen** verifies:
    - Signature is valid over the payment parameters.
    - Nonce has not been used (Redis SET NX with TTL).
    - `validUntil` not expired.
    - Amount ≥ required amount for this endpoint.
    - `payTo` matches the configured receiver for this chain.
    - On-chain settlement status matches required confirmations.
-6. **PayGate** either:
+6. **Limen** either:
    - **Direct mode:** submits the transaction itself (or relies on the agent
      having submitted it) and waits for the configured number of
      confirmations.
    - **Facilitator mode:** hits the Coinbase facilitator `/verify` then
      `/settle` endpoints; both are deterministic and return within ~200 ms.
-7. **PayGate** forwards the original request to the upstream API and relays
+7. **Limen** forwards the original request to the upstream API and relays
    the response back with an `X-PAYMENT-RESPONSE` header containing the
    settlement receipt (tx hash, block, settled amount).
 
@@ -90,7 +90,7 @@ Failure modes and responses:
 
 ```
 ┌────────────┐      ┌────────────────────────┐      ┌────────────┐
-│  AI Agent  │◀────▶│      PayGate Proxy     │◀────▶│  Upstream  │
+│  AI Agent  │◀────▶│      Limen Proxy     │◀────▶│  Upstream  │
 └────────────┘      │  ┌──────────────────┐  │      └────────────┘
                     │  │ Request gateway  │  │
                     │  │ Config matcher   │  │
@@ -138,8 +138,8 @@ Components:
 
 Deployment topologies:
 
-- **Sidecar** — PayGate runs next to the upstream; `--upstream http://localhost:3000`.
-- **Gateway** — PayGate fronts many services; `--upstream` per config block.
+- **Sidecar** — Limen runs next to the upstream; `--upstream http://localhost:3000`.
+- **Gateway** — Limen fronts many services; `--upstream` per config block.
 - **Middleware** — imported into the app directly (Express/Fastify/Hono/Next/
   FastAPI/Flask/Django/Starlette).
 
@@ -179,7 +179,7 @@ compliance:
   sanctions_screening: true
   geo_blocklist: []
 webhooks:
-  - url: https://example.com/paygate/webhook
+  - url: https://example.com/limen/webhook
     secret_env: WEBHOOK_SHARED_SECRET
     events: [payment.settled, payment.refunded]
 discovery:
@@ -194,11 +194,11 @@ Unknown keys are rejected. `version` gates migrations.
 
 ---
 
-## 6. SDK — Node.js (@paygate/node)
+## 6. SDK — Node.js (@limen/node)
 
 Exports:
 
-- `paygate(config)` — returns framework-agnostic request handler.
+- `limen(config)` — returns framework-agnostic request handler.
 - `express(config)` — Express middleware factory.
 - `fastify(config)` — Fastify plugin.
 - `hono(config)` — Hono middleware.
@@ -206,7 +206,7 @@ Exports:
 - `createProxy(config)` — standalone HTTP proxy.
 - `loadConfig(path)` — YAML/JSON loader + Zod validation.
 - `startServer(opts)` — used by CLI.
-- `PayGateError`, `errorCodes` — public error types.
+- `LimenError`, `errorCodes` — public error types.
 
 Minimum Node: **20.10.0**.
 
@@ -219,28 +219,28 @@ Runtime dependencies (intentionally small):
 CLI:
 
 ```bash
-paygate start --config paygate.config.yml --upstream http://localhost:3000
-paygate verify --chain base --tx 0x...
-paygate simulate --config paygate.config.yml --request request.http
-paygate keys generate-webhook-secret
-paygate directory submit
-paygate doctor
+limen start --config limen.config.yml --upstream http://localhost:3000
+limen verify --chain base --tx 0x...
+limen simulate --config limen.config.yml --request request.http
+limen keys generate-webhook-secret
+limen directory submit
+limen doctor
 ```
 
 ---
 
-## 7. SDK — Python (paygate)
+## 7. SDK — Python (limen)
 
 Exports:
 
-- `paygate.Proxy(config)` — framework-agnostic ASGI proxy.
-- `paygate.fastapi.PayGateMiddleware` — ASGI middleware.
-- `paygate.flask.paygate_middleware(config)` — WSGI middleware for Flask.
-- `paygate.django.PayGateMiddleware` — Django middleware class.
-- `paygate.starlette.PayGateMiddleware` — Starlette middleware.
-- `paygate.load_config(path)` — YAML/JSON loader + Pydantic validation.
-- `paygate.errors.PayGateError` + error codes.
-- `paygate.cli:app` — Typer CLI (entry point `paygate`).
+- `limen.Proxy(config)` — framework-agnostic ASGI proxy.
+- `limen.fastapi.LimenMiddleware` — ASGI middleware.
+- `limen.flask.limen_middleware(config)` — WSGI middleware for Flask.
+- `limen.django.LimenMiddleware` — Django middleware class.
+- `limen.starlette.LimenMiddleware` — Starlette middleware.
+- `limen.load_config(path)` — YAML/JSON loader + Pydantic validation.
+- `limen.errors.LimenError` + error codes.
+- `limen.cli:app` — Typer CLI (entry point `limen`).
 
 Minimum Python: **3.11**.
 
@@ -257,13 +257,13 @@ Core dependencies:
 - USDC mainnet contract: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` (6
   decimals).
 - USDC Base Sepolia: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`.
-- USDC implements EIP-3009. PayGate prefers
-  `TransferWithAuthorization` — the agent signs, PayGate submits.
-- For reorg safety, PayGate waits for `confirmations_base` blocks
+- USDC implements EIP-3009. Limen prefers
+  `TransferWithAuthorization` — the agent signs, Limen submits.
+- For reorg safety, Limen waits for `confirmations_base` blocks
   (default 2). 0 confirmations is available but only with facilitator mode.
-- Gas: paid by PayGate (or by the agent in direct mode). Base fees ~$0.0001.
+- Gas: paid by Limen (or by the agent in direct mode). Base fees ~$0.0001.
 - Finality: Base inherits Ethereum's L1 finality after ~15 min via batch
-  posting; PayGate treats 2 block confirmations as "economically final" for
+  posting; Limen treats 2 block confirmations as "economically final" for
   micropayments.
 
 ---
@@ -273,13 +273,13 @@ Core dependencies:
 - USDC mainnet mint: `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` (6
   decimals).
 - USDC devnet mint: `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU`.
-- Associated Token Accounts (ATAs) are resolved deterministically; PayGate
+- Associated Token Accounts (ATAs) are resolved deterministically; Limen
   verifies the destination ATA belongs to the configured receiver.
 - Transactions are versioned and include a `MemoInstruction` carrying the
   base64-encoded nonce.
-- Finality: PayGate defaults to `confirmed` for micropayments (~400 ms) and
+- Finality: Limen defaults to `confirmed` for micropayments (~400 ms) and
   `finalized` (~13 s) for payments above the configurable threshold.
-- Priority fees: PayGate adds a ComputeBudget instruction targeting the
+- Priority fees: Limen adds a ComputeBudget instruction targeting the
   chain's median priority fee over the last 50 blocks.
 - Address Lookup Tables: optional per-config ALT can reduce repeat
   transactions below 128 bytes to stay in a single packet.
@@ -292,7 +292,7 @@ Core dependencies:
   `settled_asset == required_asset`.
 - **I2 (recipient exact):** `settled_recipient == configured_recipient[chain]`.
 - **I3 (chain exact):** the settlement tx executed on the requested chain.
-- **I4 (nonce one-shot):** `INCR paygate:nonce:{nonce}` returns exactly 1.
+- **I4 (nonce one-shot):** `INCR limen:nonce:{nonce}` returns exactly 1.
   Any other value rejects as `nonce_reused`.
 - **I5 (TTL):** `now ≤ validUntil` using monotonic clock.
 - **I6 (signature):** cryptographic signature verifies against the canonical
@@ -334,7 +334,7 @@ configured `admin_secret` (used by the dashboard).
 - **Travel rule** — any transaction ≥ `travel_rule_threshold_usd` triggers a
   signed JSON payload to the configured compliance webhook.
 - **GDPR** — wallet addresses are treated as pseudonymous identifiers. If a
-  data subject request arrives, PayGate redacts the wallet from analytics
+  data subject request arrives, Limen redacts the wallet from analytics
   via tombstone rows while preserving aggregate totals.
 - **SOC 2** — access reviews, change-management logs, incident records are
   written to an append-only log under `ops/audit/*.ndjson` and can be
@@ -349,11 +349,11 @@ configured `admin_secret` (used by the dashboard).
   `endpoint`, `chain`, `nonce` (truncated), `wallet` (truncated), `amount`,
   `outcome`.
 - **Metrics** — Prometheus on `/metrics` (port 9464 by default). Names:
-  `paygate_requests_total{outcome,endpoint,chain}`,
-  `paygate_settlement_latency_seconds{chain}`,
-  `paygate_verification_latency_seconds{chain}`,
-  `paygate_rate_limit_drops_total{scope}`,
-  `paygate_replay_rejects_total`, and a few others.
+  `limen_requests_total{outcome,endpoint,chain}`,
+  `limen_settlement_latency_seconds{chain}`,
+  `limen_verification_latency_seconds{chain}`,
+  `limen_rate_limit_drops_total{scope}`,
+  `limen_replay_rejects_total`, and a few others.
 - **Tracing** — OpenTelemetry. Spans for `handshake`, `verify`, `settle`,
   `upstream`, emitted with chain + outcome attributes.
 - **SLOs** — `availability_5m ≥ 99.9%`, `p99 verify ≤ 250 ms`,
@@ -394,7 +394,7 @@ configured `admin_secret` (used by the dashboard).
 
 ## 16. Scaling
 
-- PayGate proxy is stateless. Scale horizontally behind any L4 LB.
+- Limen proxy is stateless. Scale horizontally behind any L4 LB.
 - Redis for nonce + rate limit. Use cluster mode ≥ 3 shards when
   `requests_per_second > 500` to avoid hot keys.
 - Postgres read replicas for analytics queries. Writes stay on primary.
@@ -410,7 +410,7 @@ configured `admin_secret` (used by the dashboard).
 - **Replay attacks** — prevented by I4.
 - **Amount manipulation** — prevented by I1 + digest binding.
 - **Recipient swap** — prevented by I2.
-- **Front-running** — PayGate only honours already-settled transactions;
+- **Front-running** — Limen only honours already-settled transactions;
   front-running does not let an attacker bypass payment.
 - **Reorg attacks** — mitigated by confirmations; optional `finalized` mode.
 - **Facilitator compromise** — direct mode is always available as a fallback.
@@ -425,12 +425,12 @@ configured `admin_secret` (used by the dashboard).
 - *Do agents need signup?* No. They just need an x402 wallet with USDC.
 - *Does the API owner need custody?* Only a receiving address. No private key
   management.
-- *Does PayGate charge a fee?* The open-source version does not. The hosted
+- *Does Limen charge a fee?* The open-source version does not. The hosted
   directory/dashboard charges 1.5% on processed volume (optional).
 - *Can I use stablecoins other than USDC?* Not in v0.1. USDC is ≥ 98% of
   x402 volume today; other stables are on the roadmap.
 - *Does it work behind Cloudflare?* Yes. Set `advanced.trust_proxy: true`.
-- *How do I test locally without funds?* Use `PAYGATE_DEV_MODE=true` or
+- *How do I test locally without funds?* Use `LIMEN_DEV_MODE=true` or
   Base Sepolia / Solana devnet faucets.
 
 ---
@@ -450,8 +450,8 @@ configured `admin_secret` (used by the dashboard).
   required to be exact-echoed on payment.
 - **Settlement receipt** — `(chain, tx_hash, block_number_or_slot,
   settled_amount, observed_at)` returned in `X-PAYMENT-RESPONSE`.
-- **Direct mode** — PayGate verifies the tx itself via RPC; no facilitator.
-- **Facilitator mode** — PayGate delegates verify + settle to an external
+- **Direct mode** — Limen verifies the tx itself via RPC; no facilitator.
+- **Facilitator mode** — Limen delegates verify + settle to an external
   facilitator (default: Coinbase x402.org).
 
 ---
@@ -474,7 +474,7 @@ Use these strings verbatim when generating client SDK error classes:
 ## 21. Versioning
 
 - All publishable packages use semver.
-- `@paygate/node` and `paygate` share a coordinated major version.
-- Breaking config changes bump the `version:` field in `paygate.config.yml`
+- `@limen/node` and `limen` share a coordinated major version.
+- Breaking config changes bump the `version:` field in `limen.config.yml`
   and trigger a migration prompt in the CLI.
 - Deprecations stay one minor version before removal.

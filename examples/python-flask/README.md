@@ -1,6 +1,6 @@
 # examples/python-flask
 
-Minimal Flask app behind PayGate.
+Minimal Flask app behind Limen.
 
 ```bash
 cp .env.example .env

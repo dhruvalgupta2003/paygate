@@ -1,13 +1,13 @@
 # API reference
 
-PayGate has three public interfaces:
+Limen has three public interfaces:
 
 1. **Proxy HTTP** — what agents see.
 2. **Admin HTTP** — what operators call from the dashboard or scripts.
-3. **CLI** — `paygate` command line.
+3. **CLI** — `limen` command line.
 
 An OpenAPI document (`docs/reference/openapi.yaml`) and a generated client
-for TypeScript and Python live under `packages/paygate-*/client/`.
+for TypeScript and Python live under `packages/limen-*/client/`.
 
 ---
 
@@ -58,12 +58,12 @@ for TypeScript and Python live under `packages/paygate-*/client/`.
 
 ---
 
-## 2. Admin HTTP (base: `/_paygate/v1`)
+## 2. Admin HTTP (base: `/_limen/v1`)
 
 All requests require one of:
 
 - `Authorization: Bearer <session-jwt>` (dashboard)
-- `X-PayGate-Admin: ed25519:<pubkey>:<sig>` (operator script)
+- `X-Limen-Admin: ed25519:<pubkey>:<sig>` (operator script)
 
 Rate limits: 60 rps per key, 1,000 rpm.
 
@@ -144,7 +144,7 @@ Create a webhook subscription:
 
 ```json
 {
-  "url": "https://example.com/paygate/webhook",
+  "url": "https://example.com/limen/webhook",
   "events": ["payment.settled", "payment.reorged", "compliance.blocked"],
   "secret": "..."
 }
@@ -156,7 +156,7 @@ Inspect deliveries; redeliver via `POST /webhooks/deliveries/:id/redeliver`.
 
 ### `POST /config/reload`
 
-Reload `paygate.config.yml` without restarting (validated against schema
+Reload `limen.config.yml` without restarting (validated against schema
 first; rejects with a diff if invalid).
 
 ### `GET /directory/listing`
@@ -190,28 +190,28 @@ Streams a ZIP of SOC 2 evidence bundles.
 
 ## 3. CLI
 
-Installed via `npx @paygate/node` or `pip install paygate`.
+Installed via `npx @limen/node` or `pip install limen`.
 
 ```
-paygate start        Run the proxy.
-paygate doctor       Check config, RPC, Redis, and ports.
-paygate verify       Verify a transaction against config.
-paygate simulate     Replay a captured request locally.
-paygate config       lint | migrate | print | explain
-paygate directory    submit | update | unlist
-paygate keys         generate-webhook-secret | generate-admin-keypair
-paygate audit        verify | tail | pack
-paygate dsr          redact | export
-paygate evidence     pack
+limen start        Run the proxy.
+limen doctor       Check config, RPC, Redis, and ports.
+limen verify       Verify a transaction against config.
+limen simulate     Replay a captured request locally.
+limen config       lint | migrate | print | explain
+limen directory    submit | update | unlist
+limen keys         generate-webhook-secret | generate-admin-keypair
+limen audit        verify | tail | pack
+limen dsr          redact | export
+limen evidence     pack
 ```
 
-### `paygate start`
+### `limen start`
 
 ```
-Usage: paygate start [options]
+Usage: limen start [options]
 
 Options:
-  -c, --config <path>       Path to paygate.config.yml (default: ./paygate.config.yml)
+  -c, --config <path>       Path to limen.config.yml (default: ./limen.config.yml)
   -u, --upstream <url>      Upstream URL to proxy to
   -p, --port <port>         Listen port (default: 4021)
   -H, --host <host>         Listen host (default: 0.0.0.0)
@@ -220,10 +220,10 @@ Options:
       --dry-run             Validate config + exit
 ```
 
-### `paygate verify`
+### `limen verify`
 
 ```
-Usage: paygate verify [options]
+Usage: limen verify [options]
 
 Options:
   --chain <chain>           base | base-sepolia | solana | solana-devnet
@@ -234,7 +234,7 @@ Options:
 
 Prints a detailed verification report.
 
-### `paygate doctor`
+### `limen doctor`
 
 Checks:
 - Config loads and validates.

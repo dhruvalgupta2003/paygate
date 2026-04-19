@@ -114,3 +114,4 @@ apps/dashboard/.vite/
 *.sqlite3
 *.db
 pgdata/
+graphify-out/

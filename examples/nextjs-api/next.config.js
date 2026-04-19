@@ -2,10 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    // Run PayGate middleware on the Node runtime (not Edge) because the
-    // in-repo @paygate/node package uses ioredis. For Edge deployments,
+    // Run Limen middleware on the Node runtime (not Edge) because the
+    // in-repo @limen/node package uses ioredis. For Edge deployments,
     // swap in an Upstash Redis client via `redisRest`.
-    serverComponentsExternalPackages: ['@paygate/node', 'ioredis'],
+    serverComponentsExternalPackages: ['@limen/node', 'ioredis'],
   },
 };
 

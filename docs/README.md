@@ -1,4 +1,4 @@
-# PayGate documentation
+# Limen documentation
 
 Start here:
 

@@ -30,7 +30,7 @@ function getHandles(): DbHandles {
   if (handles !== undefined) return handles;
   const env = getEnv();
   const logger = getLogger();
-  const client = postgres(env.PAYGATE_DATABASE_URL, {
+  const client = postgres(env.LIMEN_DATABASE_URL, {
     max: 20,
     idle_timeout: 30,
     connect_timeout: 10,

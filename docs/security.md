@@ -1,6 +1,6 @@
 # Security
 
-This document is the threat model, invariant list, and audit plan for PayGate.
+This document is the threat model, invariant list, and audit plan for Limen.
 Public disclosure policy lives in [SECURITY.md](../SECURITY.md).
 
 ---
@@ -9,7 +9,7 @@ Public disclosure policy lives in [SECURITY.md](../SECURITY.md).
 
 1. **Money-handling code is held to a higher bar.** Any file under
    `packages/**/verification/**`, `packages/**/chains/**`, or `contracts/**`
-   requires review from `@paygate/security`.
+   requires review from `@limen/security`.
 2. **Trust boundaries are explicit and few.**
 3. **Fail closed on anything that moves money, fail open on observability.**
 4. **We don't roll our own crypto.** Audited libraries only.
@@ -34,7 +34,7 @@ Public disclosure policy lives in [SECURITY.md](../SECURITY.md).
 └─────────────────┼────────────────────────────────────────────────┘
                   ▼
         ┌─────────────────────┐
-        │  PayGate Proxy      │   ◀── the only component writing
+        │  Limen Proxy      │   ◀── the only component writing
         │  (trusted)          │        to replay / audit stores
         └──────────┬──────────┘
                    ▼
@@ -54,7 +54,7 @@ Trusted:
 Untrusted:
 
 - The agent's request body, headers, and payment authorization.
-- Any third-party proxy in front of PayGate (unless `trust_proxy` is set).
+- Any third-party proxy in front of Limen (unless `trust_proxy` is set).
 - RPC responses — we **verify the returned data** cryptographically
   whenever possible (event logs match, ATA ownership checks, mint address
   matches canonical USDC).
@@ -70,11 +70,11 @@ Untrusted:
 | Freeloader agent | Access paid endpoints without paying. |
 | Replay attacker | Reuse a single paid authorisation for many requests. |
 | Front-runner | Bypass a legitimate agent's pending payment. |
-| RPC adversary | Trick PayGate into accepting forged settlement data. |
-| Facilitator compromise | Force PayGate to accept unsettled payments. |
+| RPC adversary | Trick Limen into accepting forged settlement data. |
+| Facilitator compromise | Force Limen to accept unsettled payments. |
 | Rate-limit bypasser | Exhaust RPC budget via denial-of-wallet. |
 | Supply-chain attacker | Insert malicious code via a dependency. |
-| Malicious operator | Configure PayGate to steal from agents (siphon to attacker wallet). |
+| Malicious operator | Configure Limen to steal from agents (siphon to attacker wallet). |
 
 ### 3.2 Out of scope
 
@@ -139,7 +139,7 @@ No custom ciphers, no custom PRNGs, no hand-rolled constant-time compares.
     `base64.b64decode(... , validate=True)` (Python).
   - JSON parsed with schema validation (Zod / Pydantic); unknown keys
     rejected.
-- `paygate.config.yml`: Zod/Pydantic validation; startup fails on error.
+- `limen.config.yml`: Zod/Pydantic validation; startup fails on error.
 
 ---
 
@@ -196,10 +196,10 @@ Internal audits:
 
 External audits (pre-v1):
 
-1. Source-code audit of `packages/paygate-*/**/verification/**` + `chains/**`.
-2. Smart contract audit of `contracts/base/PayGateReceipts.sol` if and when
+1. Source-code audit of `packages/limen-*/**/verification/**` + `chains/**`.
+2. Smart contract audit of `contracts/base/LimenReceipts.sol` if and when
    used in production.
-3. Penetration test of `paygate.dev` hosted stack.
+3. Penetration test of `limen.dev` hosted stack.
 
 Audit vendors will be published in `docs/audits/`.
 

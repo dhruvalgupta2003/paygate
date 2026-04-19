@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common problems and fixes. If your issue isn't here, run `paygate doctor`
+Common problems and fixes. If your issue isn't here, run `limen doctor`
 first — it catches 80% of misconfig.
 
 ---
@@ -8,8 +8,8 @@ first — it catches 80% of misconfig.
 ## "Agents are seeing 402 but never settling"
 
 - The 402 body's `facilitator` URL must be reachable from the agent.
-- Confirm `paygate.config.yml` `facilitator` is set (or
-  `PAYGATE_FACILITATOR_URL`).
+- Confirm `limen.config.yml` `facilitator` is set (or
+  `LIMEN_FACILITATOR_URL`).
 - Check the receiving wallet you advertised — agents won't pay into a
   wallet that looks dead (zero historical activity). Some clients refuse.
 
@@ -38,7 +38,7 @@ first — it catches 80% of misconfig.
 ## "RPC flapping / SETTLEMENT_PENDING loops"
 
 - Set at least two RPC providers for the chain.
-- Check `paygate_rpc_failures_total` for a specific provider.
+- Check `limen_rpc_failures_total` for a specific provider.
 - Consider switching to facilitator mode temporarily.
 
 ## "My receiving wallet balance isn't going up"
@@ -54,14 +54,14 @@ first — it catches 80% of misconfig.
 - Postgres URL wrong, or migrations weren't run.
 - Analytics buffer is in-memory; if the proxy is killed mid-batch, the
   last 500 ms of writes go to `./data/audit/*.ndjson`. Start the
-  `paygate-audit-ship` job.
+  `limen-audit-ship` job.
 
 ## "Webhook never delivered"
 
-- Check `GET /_paygate/v1/webhooks/deliveries?status=failed`.
+- Check `GET /_limen/v1/webhooks/deliveries?status=failed`.
 - Your endpoint must return 2xx within `webhooks.timeout_seconds` (default
   5 s). Otherwise we retry with exponential backoff for 24 h.
-- HMAC header is `X-PayGate-Signature: t=<ts>,v1=<hex>`. See
+- HMAC header is `X-Limen-Signature: t=<ts>,v1=<hex>`. See
   `docs/webhooks.md`.
 
 ## "I can't reach /metrics from Prometheus"
@@ -87,13 +87,13 @@ first — it catches 80% of misconfig.
 
 ## "Rate limited my own admin script"
 
-- Admin requests with a valid `X-PayGate-Admin` header bypass rate limits.
+- Admin requests with a valid `X-Limen-Admin` header bypass rate limits.
 - Session JWTs do not bypass; call the admin endpoints with a dedicated
   operator keypair.
 
 ## "I changed the config but nothing happened"
 
-- `POST /_paygate/v1/config/reload` or SIGHUP the proxy.
+- `POST /_limen/v1/config/reload` or SIGHUP the proxy.
 - Changes to `endpoints[].price_usdc` are effective immediately.
 - Changes to `wallets.*` require a restart (deliberate, to prevent
   surprising nonce drift).
@@ -102,11 +102,11 @@ first — it catches 80% of misconfig.
 
 ## Diagnostics to collect before filing an issue
 
-- `paygate doctor` full output.
+- `limen doctor` full output.
 - Request id(s) of failing requests.
 - OTel traces if available.
 - Redacted sample of `X-PAYMENT` header (keep the `from`, `to`, `chain`,
   `amount`; redact `r`, `s`, `transaction`).
-- PayGate version: `paygate --version`.
+- Limen version: `limen --version`.
 
-Open an issue: <https://github.com/dhruvalgupta2003/paygate/issues/new/choose>.
+Open an issue: <https://github.com/dhruvalgupta2003/limen/issues/new/choose>.

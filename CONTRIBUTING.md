@@ -1,6 +1,6 @@
-# Contributing to PayGate
+# Contributing to Limen
 
-Thanks for your interest. PayGate is an open-source project and we welcome
+Thanks for your interest. Limen is an open-source project and we welcome
 contributions of all shapes: bug fixes, new middleware adapters, new chain
 backends, documentation, examples, and research.
 
@@ -12,8 +12,8 @@ backends, documentation, examples, and research.
 ## Quick start
 
 ```bash
-git clone https://github.com/dhruvalgupta2003/paygate.git
-cd paygate
+git clone https://github.com/dhruvalgupta2003/limen.git
+cd limen
 corepack enable
 pnpm install
 
@@ -21,11 +21,11 @@ pnpm install
 pnpm dev
 
 # Or target one surface
-pnpm --filter @paygate/node dev
+pnpm --filter @limen/node dev
 pnpm --filter dashboard dev
 
 # Python
-cd packages/paygate-python
+cd packages/limen-python
 hatch env create
 hatch run dev
 ```
@@ -61,7 +61,7 @@ Minimum versions:
 
 - **All** PRs get a review from a maintainer.
 - PRs touching verification, key management, or smart contracts get an
-  additional review from `@paygate/security`.
+  additional review from `@limen/security`.
 - We run CI on every push: lint, typecheck, unit, integration, security-scan,
   coverage gate at 80%.
 

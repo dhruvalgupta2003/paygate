@@ -4,8 +4,8 @@
 
 ## Surfaces touched
 
-- [ ] `@paygate/node`
-- [ ] `paygate` (Python)
+- [ ] `@limen/node`
+- [ ] `limen` (Python)
 - [ ] Dashboard
 - [ ] Backend API
 - [ ] Contracts

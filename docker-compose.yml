@@ -1,30 +1,30 @@
-# PayGate local development stack.
+# Limen local development stack.
 # Usage: `docker compose up -d`
-# Services: postgres, redis, paygate-proxy, paygate-api, paygate-dashboard.
+# Services: postgres, redis, limen-proxy, limen-api, limen-dashboard.
 
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: paygate-postgres
+    container_name: limen-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: paygate
-      POSTGRES_PASSWORD: paygate
-      POSTGRES_DB: paygate
+      POSTGRES_USER: limen
+      POSTGRES_PASSWORD: limen
+      POSTGRES_DB: limen
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./apps/api/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U paygate"]
+      test: ["CMD-SHELL", "pg_isready -U limen"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: paygate-redis
+    container_name: limen-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -40,8 +40,8 @@ services:
   proxy:
     build:
       context: .
-      dockerfile: packages/paygate-node/Dockerfile
-    container_name: paygate-proxy
+      dockerfile: packages/limen-node/Dockerfile
+    container_name: limen-proxy
     restart: unless-stopped
     env_file: .env
     ports:
@@ -53,13 +53,13 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./paygate.config.yml:/app/paygate.config.yml:ro
+      - ./limen.config.yml:/app/limen.config.yml:ro
 
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    container_name: paygate-api
+    container_name: limen-api
     restart: unless-stopped
     env_file: .env
     environment:
@@ -76,7 +76,7 @@ services:
     build:
       context: .
       dockerfile: apps/dashboard/Dockerfile
-    container_name: paygate-dashboard
+    container_name: limen-dashboard
     restart: unless-stopped
     environment:
       VITE_API_URL: http://localhost:4020

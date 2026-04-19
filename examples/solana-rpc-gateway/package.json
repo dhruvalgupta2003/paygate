@@ -1,8 +1,8 @@
 {
-  "name": "paygate-example-solana-rpc-gateway",
+  "name": "limen-example-solana-rpc-gateway",
   "version": "0.1.0",
   "private": true,
-  "description": "PayGate example: monetised Solana RPC gateway that proxies to mainnet/devnet and charges $0.00025 per call.",
+  "description": "Limen example: monetised Solana RPC gateway that proxies to mainnet/devnet and charges $0.00025 per call.",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.13.5",
-    "@paygate/node": "workspace:*",
+    "@limen/node": "workspace:*",
     "hono": "^4.6.8",
     "ioredis": "^5.4.1",
     "undici": "^6.21.0"

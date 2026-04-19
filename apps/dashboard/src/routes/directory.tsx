@@ -21,10 +21,10 @@ function DirectoryRoute() {
           </h3>
           <div className="rounded-lg border border-indigo-200 bg-white p-6 dark:border-indigo-900 dark:bg-ink-950">
             <div className="text-xs uppercase tracking-widest text-indigo-600">
-              paygate · directory
+              limen · directory
             </div>
             <h4 className="mt-1 text-xl font-semibold">my-api</h4>
-            <p className="text-sm text-ink-500">Example PayGate-enabled API.</p>
+            <p className="text-sm text-ink-500">Example Limen-enabled API.</p>
             <div className="mt-3 flex flex-wrap gap-1">
               {['weather', 'analytics'].map((t) => (
                 <span

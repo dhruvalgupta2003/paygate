@@ -1,5 +1,5 @@
 /**
- * Protected route — reaches this handler only after PayGate middleware has
+ * Protected route — reaches this handler only after Limen middleware has
  * verified + settled a $0.001 USDC payment on Base Sepolia.
  */
 import { NextResponse } from 'next/server';

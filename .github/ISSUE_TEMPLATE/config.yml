@@ -3,14 +3,14 @@ blank_issues_enabled: false
 
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/paygate/paygate/security/advisories/new
+    url: https://github.com/limen/limen/security/advisories/new
     about: Report a security issue privately — do not open a public issue. See SECURITY.md.
   - name: Questions and discussion
-    url: https://github.com/paygate/paygate/discussions
+    url: https://github.com/limen/limen/discussions
     about: Ask questions, share ideas, and propose RFCs.
   - name: Documentation
-    url: https://paygate.dev/docs
+    url: https://limen.dev/docs
     about: Read the reference docs and architecture guides.
   - name: Discord community
-    url: https://paygate.dev/discord
+    url: https://limen.dev/discord
     about: Chat with maintainers and other operators.

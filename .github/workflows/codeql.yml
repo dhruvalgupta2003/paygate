@@ -1,5 +1,5 @@
-# CodeQL static analysis for PayGate.
-# Languages: javascript-typescript (packages + apps) and python (paygate-python).
+# CodeQL static analysis for Limen.
+# Languages: javascript-typescript (packages + apps) and python (limen-python).
 
 name: CodeQL
 

@@ -1,7 +1,7 @@
 # Real testnet round-trip — Base Sepolia
 
 End-to-end demo where an agent **actually pays USDC** to a receiving wallet
-on Base Sepolia, PayGate verifies the on-chain Transfer event, and the
+on Base Sepolia, Limen verifies the on-chain Transfer event, and the
 upstream API returns its response.
 
 Cost: ~$0.0001 in test ETH for gas + $0.001 in test USDC. All from
@@ -22,7 +22,7 @@ If you already have a wallet, skip to "Step 4". Otherwise:
 ### Step 1 — generate a wallet
 
 ```bash
-node packages/paygate-node/dist/cli.js keys generate-evm-key
+node packages/limen-node/dist/cli.js keys generate-evm-key
 ```
 
 Save both. The private key is a secret — only paste it into your `.env`,
@@ -56,9 +56,9 @@ curl -s https://sepolia.base.org -X POST \
 
 ---
 
-## Configure PayGate for Sepolia
+## Configure Limen for Sepolia
 
-Edit `paygate.config.yml`:
+Edit `limen.config.yml`:
 
 ```yaml
 version: 1
@@ -82,7 +82,7 @@ nanocents of gas.)
 Optional: pin the RPC URL via env
 
 ```bash
-export PAYGATE_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
+export LIMEN_BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
 # or your private RPC: https://base-sepolia.g.alchemy.com/v2/<your-key>
 ```
 
@@ -110,20 +110,26 @@ HTTPServer(('127.0.0.1', 3000), H).serve_forever()
 ### Terminal 2 — proxy (no `--dev` this time)
 
 ```bash
-node packages/paygate-node/dist/cli.js start --config paygate.config.yml --upstream http://localhost:3000 --port 4021
+node packages/limen-node/dist/cli.js start --config limen.config.yml --upstream http://localhost:3000 --port 4021
 ```
 
 ### Terminal 3 — agent
 
 ```bash
-PRIVATE_KEY=8b916793be9fb164a2628e36dbf13f541059104dd9701308d5c80133ae50e8e4
-node packages/paygate-node/dist/cli.js demo \
+# Generate or supply a Base Sepolia testnet private key.
+# DO NOT commit a real key. Use `cast wallet new` (Foundry) or any wallet that
+# can export a hex private key; fund it from https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet
+export PRIVATE_KEY="0x<your-base-sepolia-test-key>"
+
+node packages/limen-node/dist/cli.js demo \
   --upstream http://localhost:4021 \
   --endpoint /api/v1/weather/sf \
   --chain base-sepolia \
   --private-key "$PRIVATE_KEY" \
   --submit
 ```
+
+> **Never commit a private key — even a testnet one.** A funded testnet key is still a key. If you cloned this repo before this change, rotate any keys that appeared in earlier history.
 
 Expected output (~5 seconds):
 
@@ -161,12 +167,12 @@ USDC transfer.
 
 ## What just happened
 
-1. Agent hits PayGate → 402 with `paymentRequirements` (chain, amount, payTo, nonce, digest, validUntil).
+1. Agent hits Limen → 402 with `paymentRequirements` (chain, amount, payTo, nonce, digest, validUntil).
 2. Agent signs EIP-3009 `TransferWithAuthorization` for USDC.
 3. Agent **submits** `transferWithAuthorization(...)` on Base Sepolia. Pays gas.
 4. Agent waits for 1 confirmation.
 5. Agent retries the original GET with `X-PAYMENT` containing both the signature **and** the `settlementTxHash`.
-6. PayGate decodes, checks signature, then **verifies the on-chain Transfer event** matches expected (from, to, value).
+6. Limen decodes, checks signature, then **verifies the on-chain Transfer event** matches expected (from, to, value).
 7. Verified → forwards to upstream → returns 200 + receipt.
 
 This proves all 9 invariants from `docs/security.md` against real on-chain
@@ -181,7 +187,7 @@ state, not just protocol-level checks.
 | `status 402  SETTLEMENT_PENDING` | You forgot `--submit`, or you submitted but the tx hasn't reached the configured `confirmations` count yet. Wait or lower `confirmations: 1`. |
 | `status 402  AMOUNT_INSUFFICIENT  no matching USDC Transfer (...)` | Your tx went through but to the wrong address, or for the wrong amount. Check `wallets.base-sepolia` matches your `--receiver`. |
 | `on-chain submission reverted` | Signature was valid but USDC reverted — usually because your `validBefore` already passed (clock skew) or the auth nonce was already used. Re-run. |
-| `INVALID_SIGNATURE` | Wrong EIP-712 domain. PayGate expects `name='USDC', version='2', chainId=84532`. Don't change `--chain`. |
+| `INVALID_SIGNATURE` | Wrong EIP-712 domain. Limen expects `name='USDC', version='2', chainId=84532`. Don't change `--chain`. |
 | `RPC_UNAVAILABLE` | Public Sepolia RPC is throttled. Use Alchemy / QuickNode and pass `--rpc-url`. |
 
 ---

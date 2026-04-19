@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Instructions for **AI coding agents** (Claude Code, Cursor, Windsurf, Aider, Cline,
-Codex, Devin, etc.) working inside the PayGate monorepo.
+Codex, Devin, etc.) working inside the Limen monorepo.
 
 This file follows the [agents.md](https://agents.md) convention.
 If you are an LLM, read this **before** making changes.
@@ -10,8 +10,8 @@ If you are an LLM, read this **before** making changes.
 
 ## 0. One-line summary
 
-PayGate is an open-source **x402 paywall** for AI agent traffic. It ships two
-first-class SDKs (`@paygate/node`, `paygate` on PyPI), a standalone proxy, a
+Limen is an open-source **x402 paywall** for AI agent traffic. It ships two
+first-class SDKs (`@limen/node`, `limen` on PyPI), a standalone proxy, a
 React dashboard, and a backend API. Every code path that touches money is
 security-critical.
 
@@ -24,11 +24,11 @@ security-critical.
 2. **Never log full payment authorizations, private keys, or raw signatures.**
    Use the structured logger's `redact` helper.
 3. **Never weaken payment verification.** Changes under `packages/**/verification/`
-   require a second reviewer tagged `@paygate/security`.
+   require a second reviewer tagged `@limen/security`.
 4. **Prefer extending tests to softening them.** If a test blocks your change,
    the test is usually right.
-5. **Small, focused PRs.** Group by surface (`packages/paygate-node/**`,
-   `packages/paygate-python/**`, `apps/dashboard/**`, etc).
+5. **Small, focused PRs.** Group by surface (`packages/limen-node/**`,
+   `packages/limen-python/**`, `apps/dashboard/**`, etc).
 6. **Keep TypeScript and Python SDKs in parity.** If you add a feature in one,
    file a tracking issue for the other.
 7. **No emojis in code, logs, or error messages.** Dashboard copy may use
@@ -40,12 +40,12 @@ security-critical.
 
 | Path | What lives here | Entry points |
 |------|-----------------|--------------|
-| `packages/paygate-node/` | TypeScript SDK + proxy + CLI | `src/index.ts`, `src/cli/index.ts` |
-| `packages/paygate-python/` | Python SDK + proxy + CLI | `paygate/__init__.py`, `paygate/cli/__init__.py` |
+| `packages/limen-node/` | TypeScript SDK + proxy + CLI | `src/index.ts`, `src/cli/index.ts` |
+| `packages/limen-python/` | Python SDK + proxy + CLI | `limen/__init__.py`, `limen/cli/__init__.py` |
 | `apps/dashboard/` | React + Vite dashboard | `src/main.tsx` |
 | `apps/api/` | Hono backend (PostgreSQL + Redis) | `src/index.ts` |
-| `contracts/base/` | Optional Solidity contracts (Foundry) | `src/PayGateReceipts.sol` |
-| `contracts/solana/` | Optional Solana programs (Anchor) | `programs/paygate/src/lib.rs` |
+| `contracts/base/` | Optional Solidity contracts (Foundry) | `src/LimenReceipts.sol` |
+| `contracts/solana/` | Optional Solana programs (Anchor) | `programs/limen/src/lib.rs` |
 | `examples/` | One-file repros in popular frameworks | each has its own README |
 | `docs/` | Human + LLM docs | `README.md`, `llms.txt`, `llms-full.txt` |
 
@@ -59,7 +59,7 @@ security-critical.
 | **turbo** | Monorepo build orchestrator. Run `pnpm build`, `pnpm test`, etc. at the root. |
 | **tsup** | Builds the Node SDK to ESM + CJS + `.d.ts`. |
 | **vite** | Dashboard bundler. |
-| **hatch** | Python build system for `paygate-python`. |
+| **hatch** | Python build system for `limen-python`. |
 | **ruff** | Python linter + formatter. No Black. |
 | **mypy** | Python type checker (`strict`). |
 | **eslint + prettier** | JS/TS lint + format. Prettier is the source of truth for style. |
@@ -77,12 +77,12 @@ pnpm build
 pnpm test             # unit + integration
 pnpm lint
 pnpm typecheck
-pnpm --filter @paygate/node test       # scope to one package
-pnpm --filter paygate-python test      # scope to python
+pnpm --filter @limen/node test       # scope to one package
+pnpm --filter limen-python test      # scope to python
 pnpm --filter dashboard dev
 ```
 
-For Python, inside `packages/paygate-python/`:
+For Python, inside `packages/limen-python/`:
 
 ```bash
 hatch env create
@@ -98,14 +98,14 @@ hatch run typecheck
 Payment verification is the **most security-sensitive** part of the codebase.
 
 **If you are modifying any file matching**
-`packages/paygate-*/**/verification/**` or `contracts/**`:
+`packages/limen-*/**/verification/**` or `contracts/**`:
 
 1. Open the relevant [invariant list](./docs/security.md#invariants).
 2. Add or update a test case for **each invariant** your change could affect.
 3. Run the full verification test suite twice, including fuzzing:
    ```bash
-   pnpm --filter @paygate/node test -- --coverage --run
-   pnpm --filter @paygate/node test -- --run verification.fuzz
+   pnpm --filter @limen/node test -- --coverage --run
+   pnpm --filter @limen/node test -- --run verification.fuzz
    hatch run -e test pytest -k verification --cov
    ```
 4. Add yourself to the `CODEOWNERS` review list if the logic is chain-specific.
@@ -119,7 +119,7 @@ Payment verification is the **most security-sensitive** part of the codebase.
 
 - Strict mode, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` all on.
 - Prefer `readonly` arrays, `Result`-like return unions, and `zod` for parsing.
-- Errors extend `PayGateError` with a stable `.code`. See `src/errors.ts`.
+- Errors extend `LimenError` with a stable `.code`. See `src/errors.ts`.
 - Logs go through `src/utils/logger.ts`. Never `console.log`.
 - Public exports are enumerated in `src/index.ts`. No re-exporting internals.
 
@@ -128,14 +128,14 @@ Payment verification is the **most security-sensitive** part of the codebase.
 - Python 3.11+. Type hints on every public function.
 - `from __future__ import annotations` in every module.
 - Pydantic v2 for config + DTOs. Prefer frozen models.
-- Errors extend `paygate.errors.PayGateError` with a `.code` string.
-- Use `paygate.utils.logger.get_logger(__name__)` — never `print` or `logging.getLogger(__name__)` directly.
+- Errors extend `limen.errors.LimenError` with a `.code` string.
+- Use `limen.utils.logger.get_logger(__name__)` — never `print` or `logging.getLogger(__name__)` directly.
 
 ### Naming
 
-- Package names: `@paygate/node`, `@paygate/react`, `paygate` (PyPI), `paygate-dashboard`.
-- Env vars: `PAYGATE_*`.
-- Metrics: `paygate_*` (snake_case, Prometheus convention).
+- Package names: `@limen/node`, `@limen/react`, `limen` (PyPI), `limen-dashboard`.
+- Env vars: `LIMEN_*`.
+- Metrics: `limen_*` (snake_case, Prometheus convention).
 - Internal types: `PascalCase`; interfaces get no `I` prefix.
 
 ### Commits & PRs
@@ -148,11 +148,11 @@ Payment verification is the **most security-sensitive** part of the codebase.
 
 ## 6. How to add a new chain
 
-1. Create `packages/paygate-node/src/chains/<chain>.ts` implementing `ChainAdapter`.
+1. Create `packages/limen-node/src/chains/<chain>.ts` implementing `ChainAdapter`.
 2. Implement the three methods: `buildPaymentRequirements`, `verifyPayment`,
    `confirmPayment`.
 3. Add a USDC (or stable) contract address constant.
-4. Mirror in `packages/paygate-python/paygate/chains/<chain>.py`.
+4. Mirror in `packages/limen-python/limen/chains/<chain>.py`.
 5. Add integration tests that hit the public testnet RPC.
 6. Update `docs/chains/<chain>.md`, `README.md` chain matrix, and `llms-full.txt`.
 
@@ -161,9 +161,9 @@ Payment verification is the **most security-sensitive** part of the codebase.
 ## 7. How to add a new framework adapter
 
 1. Create `src/middleware/<framework>.ts` exporting a factory function that
-   takes a `PayGateConfig` and returns the framework's middleware/handler.
+   takes a `LimenConfig` and returns the framework's middleware/handler.
 2. Keep the adapter **thin** — all real logic lives in `src/proxy/core.ts`.
-3. Mirror in Python under `paygate/middleware/<framework>.py` where applicable.
+3. Mirror in Python under `limen/middleware/<framework>.py` where applicable.
 4. Add an example under `examples/<framework>-api/`.
 
 ---

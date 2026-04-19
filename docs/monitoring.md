@@ -1,6 +1,6 @@
 # Monitoring
 
-PayGate emits structured logs, Prometheus metrics, and OpenTelemetry traces
+Limen emits structured logs, Prometheus metrics, and OpenTelemetry traces
 by default. This doc is the operator's guide to what's exported, what to
 alert on, and the runbooks attached to each alert.
 
@@ -25,7 +25,7 @@ Every log line includes:
 {
   "ts": "2026-04-17T12:00:00.123Z",
   "lvl": "info",
-  "svc": "paygate-proxy",
+  "svc": "limen-proxy",
   "ver": "0.1.0",
   "reqId": "01J...",
   "traceId": "a1b2c3...",
@@ -53,23 +53,23 @@ Rules:
 
 | Metric | Type | Labels | Meaning |
 |--------|------|--------|---------|
-| `paygate_requests_total` | counter | `outcome, endpoint, chain` | HTTP requests |
-| `paygate_http_duration_seconds` | histogram | `route, status` | End-to-end latency |
-| `paygate_verify_duration_seconds` | histogram | `chain, mode` | Chain verify latency |
-| `paygate_settle_duration_seconds` | histogram | `chain, mode` | Settle latency (facilitator or direct) |
-| `paygate_verify_failures_total` | counter | `chain, reason` | Verification failures by reason |
-| `paygate_replay_rejects_total` | counter | — | Replay attempts |
-| `paygate_rate_limit_drops_total` | counter | `scope` | Rate-limit drops |
-| `paygate_rpc_failures_total` | counter | `chain, provider, status` | RPC errors |
-| `paygate_cache_hits_total` | counter | `kind` | Cache hits |
-| `paygate_cache_misses_total` | counter | `kind` | Cache misses |
-| `paygate_upstream_duration_seconds` | histogram | `endpoint, status` | Upstream latency |
-| `paygate_upstream_failures_total` | counter | `endpoint, status` | Upstream errors |
-| `paygate_audit_write_failures_total` | counter | — | Audit log write failures |
-| `paygate_webhook_delivery_seconds` | histogram | `event` | Webhook delivery latency |
-| `paygate_webhook_delivery_failures_total` | counter | `event, status` | Webhook failures |
-| `paygate_directory_submissions_total` | counter | — | Public directory submissions |
-| `paygate_build_info` | gauge | `version, commit, build_time` | Deployment version |
+| `limen_requests_total` | counter | `outcome, endpoint, chain` | HTTP requests |
+| `limen_http_duration_seconds` | histogram | `route, status` | End-to-end latency |
+| `limen_verify_duration_seconds` | histogram | `chain, mode` | Chain verify latency |
+| `limen_settle_duration_seconds` | histogram | `chain, mode` | Settle latency (facilitator or direct) |
+| `limen_verify_failures_total` | counter | `chain, reason` | Verification failures by reason |
+| `limen_replay_rejects_total` | counter | — | Replay attempts |
+| `limen_rate_limit_drops_total` | counter | `scope` | Rate-limit drops |
+| `limen_rpc_failures_total` | counter | `chain, provider, status` | RPC errors |
+| `limen_cache_hits_total` | counter | `kind` | Cache hits |
+| `limen_cache_misses_total` | counter | `kind` | Cache misses |
+| `limen_upstream_duration_seconds` | histogram | `endpoint, status` | Upstream latency |
+| `limen_upstream_failures_total` | counter | `endpoint, status` | Upstream errors |
+| `limen_audit_write_failures_total` | counter | — | Audit log write failures |
+| `limen_webhook_delivery_seconds` | histogram | `event` | Webhook delivery latency |
+| `limen_webhook_delivery_failures_total` | counter | `event, status` | Webhook failures |
+| `limen_directory_submissions_total` | counter | — | Public directory submissions |
+| `limen_build_info` | gauge | `version, commit, build_time` | Deployment version |
 
 Runtime metrics (process + node defaults) are also exported:
 `process_cpu_seconds_total`, `nodejs_heap_size_used_bytes`, etc.
@@ -80,16 +80,16 @@ Runtime metrics (process + node defaults) are also exported:
 
 Top-level spans:
 
-- `paygate.handshake` — 402 generation or auth decoding.
-- `paygate.verify` — per-chain verification.
-- `paygate.settle` — facilitator or direct RPC submission.
-- `paygate.upstream` — forwarded request to the upstream API.
-- `paygate.compliance` — sanctions + geo checks.
-- `paygate.replay_guard` — Redis nonce operations.
-- `paygate.analytics_write` — background ingest.
+- `limen.handshake` — 402 generation or auth decoding.
+- `limen.verify` — per-chain verification.
+- `limen.settle` — facilitator or direct RPC submission.
+- `limen.upstream` — forwarded request to the upstream API.
+- `limen.compliance` — sanctions + geo checks.
+- `limen.replay_guard` — Redis nonce operations.
+- `limen.analytics_write` — background ingest.
 
-Attributes always include: `paygate.chain`, `paygate.endpoint`,
-`paygate.outcome`, and `paygate.amount_micros` for settlement spans.
+Attributes always include: `limen.chain`, `limen.endpoint`,
+`limen.outcome`, and `limen.amount_micros` for settlement spans.
 
 ---
 
@@ -108,13 +108,13 @@ Attributes always include: `paygate.chain`, `paygate.endpoint`,
 
 | Alert | Fires when | Severity | Action |
 |-------|-----------|----------|--------|
-| `ProxyDown` | `up{job="paygate-proxy"} == 0` for 2 min | page | [runbook](./runbooks/proxy-down.md) |
-| `High5xxRate` | `rate(paygate_http_duration_seconds_count{status=~"5.."}[5m]) / rate(paygate_http_duration_seconds_count[5m]) > 0.02` | page | [runbook](./runbooks/high-5xx.md) |
-| `RPCUnavailable` | `rate(paygate_rpc_failures_total[5m]) > 0.05` for 3 min | page | [runbook](./runbooks/rpc-unavailable.md) |
-| `VerifyLatencyP99High` | p99 `paygate_verify_duration_seconds` > SLO for 10 min | warn | [runbook](./runbooks/verify-slow.md) |
-| `ReplayAttemptSpike` | `rate(paygate_replay_rejects_total[5m]) > 1/s` | warn | possible abuse; review traffic |
-| `AuditWriteFailure` | `rate(paygate_audit_write_failures_total[5m]) > 0` | page | disk / buffer issue |
-| `FacilitatorFailoverActive` | `paygate_facilitator_failover_active == 1` for 5 min | warn | watch capacity |
+| `ProxyDown` | `up{job="limen-proxy"} == 0` for 2 min | page | [runbook](./runbooks/proxy-down.md) |
+| `High5xxRate` | `rate(limen_http_duration_seconds_count{status=~"5.."}[5m]) / rate(limen_http_duration_seconds_count[5m]) > 0.02` | page | [runbook](./runbooks/high-5xx.md) |
+| `RPCUnavailable` | `rate(limen_rpc_failures_total[5m]) > 0.05` for 3 min | page | [runbook](./runbooks/rpc-unavailable.md) |
+| `VerifyLatencyP99High` | p99 `limen_verify_duration_seconds` > SLO for 10 min | warn | [runbook](./runbooks/verify-slow.md) |
+| `ReplayAttemptSpike` | `rate(limen_replay_rejects_total[5m]) > 1/s` | warn | possible abuse; review traffic |
+| `AuditWriteFailure` | `rate(limen_audit_write_failures_total[5m]) > 0` | page | disk / buffer issue |
+| `FacilitatorFailoverActive` | `limen_facilitator_failover_active == 1` for 5 min | warn | watch capacity |
 | `BalanceLow` | receiving wallet balance < threshold | warn | operator-specific |
 
 ---
@@ -136,10 +136,10 @@ Located under `docs/runbooks/`. Each follows a consistent format:
 
 ## Dashboards
 
-- `dashboards/paygate-overview.json` — Grafana dashboard, per-chain rollup.
-- `dashboards/paygate-endpoints.json` — per-endpoint latency + revenue.
-- `dashboards/paygate-rpc.json` — RPC provider health.
-- `dashboards/paygate-compliance.json` — sanctions / geo / rate-limit hits.
+- `dashboards/limen-overview.json` — Grafana dashboard, per-chain rollup.
+- `dashboards/limen-endpoints.json` — per-endpoint latency + revenue.
+- `dashboards/limen-rpc.json` — RPC provider health.
+- `dashboards/limen-compliance.json` — sanctions / geo / rate-limit hits.
 
 Import into Grafana: `grafana-cli --pluginUrl <path>` or use the JSON
 directly.
@@ -151,7 +151,7 @@ directly.
 At the start of a shift:
 
 1. Check the overview dashboard for any anomaly over the last 24 h.
-2. Verify each RPC provider is healthy (green in `paygate-rpc`).
+2. Verify each RPC provider is healthy (green in `limen-rpc`).
 3. Verify the facilitator is reachable (`curl https://x402.org/facilitator/health`).
-4. Verify audit log ship is caught up (`paygate audit tail --since 5m`).
+4. Verify audit log ship is caught up (`limen audit tail --since 5m`).
 5. Confirm no open SEV-2+ incidents in the tracker.

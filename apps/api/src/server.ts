@@ -44,7 +44,7 @@ export function createApp(options: CreateAppOptions = {}): Hono {
   if (!options.unauthenticated) {
     admin.use('*', authMiddleware());
   }
-  admin.use('*', rateLimitMiddleware({ limit: 60, windowSeconds: 60 }));
+  admin.use('*', rateLimitMiddleware({ perMinute: 60 }));
 
   admin.route('/analytics', analyticsRoutes);
   admin.route('/transactions', transactionsRoutes);
@@ -59,11 +59,11 @@ export function createApp(options: CreateAppOptions = {}): Hono {
   admin.route('/compliance', complianceRoutes);
   admin.route('/audit', auditRoutes);
 
-  app.route('/_paygate/v1', admin);
+  app.route('/_limen/v1', admin);
 
-  app.doc('/_paygate/v1/openapi.json', {
+  app.doc('/_limen/v1/openapi.json', {
     openapi: '3.1.0',
-    info: { title: 'PayGate Admin API', version: '0.1.0' },
+    info: { title: 'Limen Admin API', version: '0.1.0' },
   });
 
   return app as unknown as Hono;
