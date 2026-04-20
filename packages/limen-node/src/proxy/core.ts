@@ -35,6 +35,18 @@ export interface CoreProxyDeps {
   readonly upstream: string;
   readonly facilitator?: FacilitatorClient;
   readonly now?: () => number;
+  /**
+   * In-process middleware adapters (Express/Hono/Fastify/Next) set this to
+   * `true` so the proxy stops short of forwarding the request to `upstream`.
+   * The middleware then calls the framework's own `next()` so the request
+   * continues to user-defined route handlers running inside the same
+   * server.  Without this flag the proxy would forward to upstream (which
+   * defaults to `http://localhost:3000`), and when that upstream IS the
+   * server hosting the middleware, the request loops back into itself
+   * until the upstream timeout fires.  Standalone proxy mode leaves this
+   * unset (default false) and forwards as before.
+   */
+  readonly guardMode?: boolean;
 }
 
 export interface CoreProxyResult {
@@ -54,6 +66,7 @@ export class CoreProxy {
   private readonly logger: Logger;
   private readonly upstream: string;
   private readonly facilitator: FacilitatorClient | undefined;
+  private readonly guardMode: boolean;
 
   constructor(deps: CoreProxyDeps) {
     this.cfg = deps.config;
@@ -64,8 +77,19 @@ export class CoreProxy {
     this.logger = deps.logger;
     this.upstream = deps.upstream;
     this.facilitator = deps.facilitator;
+    this.guardMode = deps.guardMode ?? false;
     void (deps.now ?? epochSeconds); // reserved for future injection
     this.matcher = compileMatcher(this.cfg.endpoints, (s) => usdcToMicros(s));
+  }
+
+  /**
+   * In guard mode we hand back a "200, no body" sentinel so the framework
+   * middleware knows to call its own next()/await next() and let the user's
+   * route handler emit the real response.  In proxy mode this method is
+   * never invoked.
+   */
+  private guardPassResponse(): LimenResponse {
+    return { status: 200, headers: {}, body: '' };
   }
 
   async handle(request: LimenRequest): Promise<CoreProxyResult> {
@@ -81,6 +105,7 @@ export class CoreProxy {
           const matched = this.matcher.findMatch(request.path, request.method);
           if (!matched) {
             // Unpaywalled — pass straight through.
+            if (this.guardMode) return { response: this.guardPassResponse() };
             return { response: await this.forward(request) };
           }
 
@@ -96,6 +121,7 @@ export class CoreProxy {
           // Price of 0 = free endpoint.  Still cache & rate-limit.
           if (matched.priceMicros === 0n) {
             metrics.requestsTotal.inc({ endpoint: matched.endpoint.path, outcome: 'free' });
+            if (this.guardMode) return { response: this.guardPassResponse() };
             return { response: await this.forward(request) };
           }
 
@@ -256,8 +282,12 @@ export class CoreProxy {
             };
           }
 
-          // Forward upstream.
-          const upstreamResp = await this.forward(request);
+          // Forward upstream — or, in guard mode, hand control back to the
+          // host framework via a "pass" sentinel so the user's route handler
+          // (running on the same server) can respond directly.
+          const upstreamResp = this.guardMode
+            ? this.guardPassResponse()
+            : await this.forward(request);
 
           // Extract settlement tx hash (EVM auth carries it explicitly).
           const settlementTxHash =

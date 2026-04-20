@@ -10,6 +10,9 @@ export function limenHono(options: HonoLimenOptions): MiddlewareHandler {
   const proxy = new CoreProxy({
     ...options,
     upstream: options.upstream ?? 'http://localhost:3000',
+    // Guard mode: yield to Hono's `next()` on success so the user's route
+    // handler emits the response.  See Express middleware for rationale.
+    guardMode: true,
   });
 
   const handler: MiddlewareHandler = async (c, next) => {

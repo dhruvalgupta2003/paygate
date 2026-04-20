@@ -13,6 +13,10 @@ export const limenFastify: FastifyPluginAsync<FastifyLimenOptions> = async (
   const proxy = new CoreProxy({
     ...options,
     upstream: options.upstream ?? 'http://localhost:3000',
+    // Guard mode: Fastify's preHandler hook either short-circuits the
+    // response (402/4xx/5xx) or falls through to the user's route handler
+    // — never forwards to a separate upstream.
+    guardMode: true,
   });
 
   app.addHook('preHandler', async (req: FastifyRequest, reply: FastifyReply) => {

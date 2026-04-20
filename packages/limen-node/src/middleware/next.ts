@@ -11,9 +11,13 @@ export function limenEdge(options: Omit<CoreProxyDeps, 'upstream'> & { upstream?
   const proxy = new CoreProxy({
     ...options,
     upstream: options.upstream ?? 'http://localhost:3000',
+    // Guard mode: when the request is allowed (free or paid + verified),
+    // we return undefined so Next.js continues to the matched route
+    // handler instead of replaying the upstream response.
+    guardMode: true,
   });
 
-  return async function middleware(request: Request): Promise<Response> {
+  return async function middleware(request: Request): Promise<Response | undefined> {
     const url = new URL(request.url);
     const bodyBuf =
       request.method === 'GET' || request.method === 'HEAD'
@@ -31,6 +35,13 @@ export function limenEdge(options: Omit<CoreProxyDeps, 'upstream'> & { upstream?
     };
 
     const result = await proxy.handle(pgReq);
+    // Guard-pass sentinel (200, no body) → return undefined so Next.js
+    // routes the request to its matched handler.  Anything else (402,
+    // 4xx, 5xx) is the canonical short-circuit and gets wrapped as a
+    // Response so Next emits it verbatim.
+    if (result.response.status === 200 && (result.response.body ?? '') === '') {
+      return undefined;
+    }
     return new Response(result.response.body ?? null, {
       status: result.response.status,
       headers: result.response.headers,

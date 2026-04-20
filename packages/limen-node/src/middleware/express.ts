@@ -11,6 +11,11 @@ export function limen(options: ExpressLimenOptions): RequestHandler {
   const proxy = new CoreProxy({
     ...options,
     upstream: options.upstream ?? 'http://localhost:3000',
+    // Guard mode: the proxy validates payment + ratelimits + compliance
+    // and then yields back to Express so the user's route handler runs
+    // in-process.  Without this, the proxy would forward to its own
+    // listener (default upstream localhost:3000) and loop until timeout.
+    guardMode: true,
   });
 
   const handler: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
