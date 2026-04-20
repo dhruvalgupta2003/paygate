@@ -38,7 +38,7 @@
     "@opentelemetry/auto-instrumentations-node": "^0.51.0",
     "@opentelemetry/sdk-node": "^0.54.0",
     "archiver": "^7.0.1",
-    "drizzle-orm": "^0.36.0",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.6.8",
     "ioredis": "^5.4.1",
     "pino": "^9.5.0",
