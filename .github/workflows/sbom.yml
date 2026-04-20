@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.tag_name || inputs.tag }}
 
@@ -46,7 +46,7 @@ jobs:
           corepack prepare pnpm@${PNPM_VERSION} --activate
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -65,12 +65,12 @@ jobs:
             packages/limen-node/package.json
 
       - name: Attest SBOM provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: limen-node.cdx.json
 
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
           files: limen-node.cdx.json
@@ -92,12 +92,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -115,12 +115,12 @@ jobs:
             --schema-version 1.5
 
       - name: Attest SBOM provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: packages/limen-python/limen-python.cdx.json
 
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
           files: packages/limen-python/limen-python.cdx.json
@@ -147,19 +147,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Log in to ghcr.io
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install syft
-        uses: anchore/sbom-action/download-syft@v0.17.8
+        uses: anchore/sbom-action/download-syft@v0.24.0
 
       - name: Generate SBOM via syft
         env:
@@ -174,14 +174,14 @@ jobs:
             -o spdx-json=limen-${{ matrix.image }}-docker.spdx.json
 
       - name: Attest SBOM provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             limen-${{ matrix.image }}-docker.cdx.json
             limen-${{ matrix.image }}-docker.spdx.json
 
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
           files: |
