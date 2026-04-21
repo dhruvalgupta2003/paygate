@@ -57,7 +57,7 @@
     "@solana/web3.js": "^1.95.4",
     "bs58": "^6.0.0",
     "viem": "^2.21.40",
-    "zod": "^3.23.8"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
