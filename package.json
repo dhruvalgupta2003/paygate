@@ -1,6 +1,6 @@
 {
   "name": "limen",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "x402 paywall for AI agent traffic — Node.js + Python SDKs, proxy, dashboard, and API directory.",
   "license": "MIT",

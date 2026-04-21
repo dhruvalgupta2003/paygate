@@ -1,6 +1,6 @@
 {
   "name": "@limen/node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "x402 paywall for AI agent traffic. Drop-in middleware + standalone proxy for Express, Fastify, Hono, and Next.js. USDC on Base and Solana.",
   "license": "MIT",
   "homepage": "https://limen.dev",
@@ -117,8 +117,14 @@
     "next": ">=14"
   },
   "peerDependenciesMeta": {
-    "express": { "optional": true },
-    "fastify": { "optional": true },
-    "next": { "optional": true }
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    }
   }
 }

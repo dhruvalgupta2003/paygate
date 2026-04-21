@@ -1,6 +1,6 @@
 {
   "name": "@limen/api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Limen backend API: dashboard, public directory, analytics, webhooks, refunds, DSR, SOC 2 evidence.",
   "license": "MIT",
