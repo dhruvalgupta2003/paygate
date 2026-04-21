@@ -1,0 +1,69 @@
+{
+  "name": "@limen/mcp-agent",
+  "version": "0.1.0",
+  "description": "MCP server that lets an LLM-controlled wallet discover and pay for x402-priced APIs through Limen — quote, sign EIP-712 authorizations, and fetch the underlying response with one tool call.",
+  "license": "MIT",
+  "author": "Limen contributors",
+  "homepage": "https://limen.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhruvalgupta2003/limen.git",
+    "directory": "packages/limen-mcp-agent"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "x402",
+    "limen",
+    "agentic",
+    "usdc",
+    "base"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "limen-mcp-agent": "./dist/server.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.10.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "clean": "rimraf dist .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@limen/node": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.95.4",
+    "bs58": "^6.0.0",
+    "viem": "^2.21.40",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}
