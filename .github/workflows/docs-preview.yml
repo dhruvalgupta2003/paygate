@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Enable pnpm
         run: |
@@ -47,7 +47,7 @@ jobs:
           corepack prepare pnpm@${PNPM_VERSION} --activate
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -127,7 +127,7 @@ jobs:
 
       - name: Comment preview URL
         if: steps.deploy.outputs.url != ''
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: docs-preview
           message: |
